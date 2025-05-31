@@ -12,8 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { setItems, setTotalAmount, setTotalQuantity } from '../src/redux/slices/checkoutSlice';
 import { useRouter } from 'next/router';
-import { useEffect, useState, useRef } from 'react';
-import QRCode from 'react-qr-code';
+import { useEffect, useState } from 'react';
 import { IconButton } from '@mui/material';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import TelegramIcon from '@mui/icons-material/Telegram';
@@ -63,7 +62,7 @@ const myanmarCities = [
 
   // Mon State
   'မော်လမြိုင်', 'ကျိုက်ထို', 'ရေး', 'မုဒုံ', 'ပေါင်', 'သံဖြူဇရပ်', 'မုတ္တမ', 'ကျိူက်မရော', 
-  'သထုံ', 'ကျိုက္ခမီ', 'ချောင်းဆုဲံ',
+  'သထုံ', 'ကျိုက္ခမီ', 'ချောင်းဆုံ',
 
   // Rakhine State
   'စစ်တွေ', 'ဘူးသီးတောင်', 'မာန်အောင်', 'ရသေ့တောင်', '၀ေသာလီ', 'တောင်ကုတ်', 'မြောက်ဦး', 
@@ -83,7 +82,7 @@ const myanmarCities = [
   'ပန်ဆန်း', 'မိုင်းတုံ', 'ပင်လုံ', 'မူဆယ်', 'မိုးနဲ', 'မိုင်းပန်', 'မိုင်းရှူး', 'အောင်ပန်း', 
   'ပင်လောင်း', 'ပေါင်းလောင်း', 'နောင်တရား', 'ဟိုပုံး', 'မိုင်းဆတ်', 'လားရှိုး', 'မိုင်းရယ်', 
   'မိုင်းမော', 'ဟိုပန်', 'ပန်၀ိုင်', 'ပန်လုံ', 'မက်မန်း', 'နားဖန်း', 'သီပေါ', 
-  'သန္နီ', 'ဆီဆိုင်', 'နောင်ချိူ', 'လွိုင်လင်', 'ကွမ်းလုဲံ',
+  'သန္နီ', 'ဆီဆိုင်', 'နောင်ချိူ', 'လွိုင်လင်', 'ကွမ်းလုံ',
 
   // Tanintharyi Region
   'ဘုတ်ပြင်း', 'ကျွန်းစု', 'ပုလော', 'ထား၀ယ်', 'လောင်းလုံ', 'သရက်ချောင်း', 'မြိတ်', 
@@ -101,7 +100,6 @@ const myanmarCities = [
 export default function Checkout(props: { disableCustomTheme?: boolean }) {
   const checkoutData = useSelector((state: RootState) => state.checkout);
   const {totalQuantity, totalAmount, items} = useSelector((state: any) => state.cart);
-  const [qrValue, setQrValue] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   
   // Form state
@@ -116,11 +114,11 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
     city: ''
   });
   const [isFormValid, setIsFormValid] = useState(false);
-  const [showQR, setShowQR] = useState(false);
+  const [showOrderData, setShowOrderData] = useState(false);
+  const [orderData, setOrderData] = useState<any>(null);
 
   const router = useRouter();
   const dispatch = useDispatch();
-  const qrCodeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     dispatch(setTotalAmount(totalAmount));  
@@ -185,7 +183,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
   // Handle form submission
   const handleFormSubmit = () => {
     if (validateForm()) {
-      // Generate QR code with form data
+      // Generate order data
       if (items && items.length > 0) {
         const simplifiedItems = items.map((item: { id: any; size: any; quantity: any; }) => ({
           id: item.id,
@@ -193,18 +191,20 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           q: item.quantity
         }));
         
-        const orderData = {
+        const newOrderData = {
           items: simplifiedItems,
           tq: totalQuantity,
           ta: totalAmount,
           n: formData.name.trim(),
           p: formData.phone.trim(),
-          c: formData.city.trim()
+          c: formData.city.trim(),
+          timestamp: Date.now()
         };
         
-        const qrData = JSON.stringify(orderData);
-        setQrValue(qrData);
-        setShowQR(true);
+        console.log('Order Data Object:', newOrderData);
+        
+        setOrderData(newOrderData);
+        setShowOrderData(true);
       }
     }
   };
@@ -216,153 +216,17 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
     }
   }, [formData]);
 
-  const downloadQRCode = () => {
-    if (!qrCodeRef.current) return;
-    
-    const svg = qrCodeRef.current.querySelector('svg');
-    if (!svg) return;
-    
-    // Create a higher resolution canvas
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    
-    // Check if context is available
-    if (!ctx) {
-      console.error('Unable to get canvas context');
-      return;
-    }
-    
-    const scale = 4; // Increase resolution for better quality
-    
-    canvas.width = 256 * scale;
-    canvas.height = 256 * scale;
-    
-    // Set white background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const img = new Image();
-    
-    img.onload = () => {
-      if (ctx) {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        
-        if (isMobile) {
-          // For mobile devices
-          canvas.toBlob((blob) => {
-            if (!blob) {
-              console.error('Failed to create blob');
-              return;
-            }
-
-            // Check if Web Share API is available and supports files
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], "test.png", { type: "image/png" })] })) {
-              const file = new File([blob], "checkout-qr.png", { type: "image/png" });
-              navigator.share({
-                title: 'Checkout QR Code',
-                text: 'အော်ဒါ QR ကုဒ်',
-                files: [file]
-              }).catch((error) => {
-                console.error('Share failed:', error);
-                // Fallback to download
-                fallbackDownload(blob);
-              });
-            } else {
-              // Fallback for mobile devices without proper share support
-              fallbackDownload(blob);
-            }
-          }, 'image/png', 1.0);
-        } else {
-          // For desktop
-          const pngFile = canvas.toDataURL("image/png", 1.0);
-          const link = document.createElement('a');
-          link.href = pngFile;
-          link.download = 'checkout-qr.png';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
-      }
-    };
-    
-    img.onerror = () => {
-      console.error('Failed to load SVG image');
-    };
-    
-    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
-  };
-
-  const fallbackDownload = (blob:any) => {
-    // Create object URL for the blob
-    const url = URL.createObjectURL(blob);
-    
-    // Try to open the image in a new tab/window
-    // User can then long-press and save to gallery
-    const newWindow = window.open(url, '_blank');
-    
-    if (!newWindow) {
-      // If popup blocked, try direct download
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'checkout-qr.png';
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      // Show instruction to user
-      alert('QR ကုဒ်ကို Gallery တွင် သိမ်းရန် ဓာတ်ပုံပေါ်တွင် နှိပ်၍ ကြာကြာ ဖိထားပြီး "Save to Photos" သို့မဟုတ် "Download" ကို ရွေးပါ။');
-    } else {
-      // Show instruction for the opened image
-      setTimeout(() => {
-        alert('QR ကုဒ်ကို Gallery တွင် သိမ်းရန် ဓာတ်ပုံပေါ်တွင် နှိပ်၍ ကြာကြာ ဖိထားပြီး "Save to Photos" သို့မဟုတ် "Download" ကို ရွေးပါ။');
-      }, 1000);
-    }
-    
-    // Clean up the URL after some time
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 10000);
-  };
-
-
-  const generateQR = () => {
-    if (!qrValue) return null;
-    
-    return (
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column',
-        alignItems: 'center',
-        p: 5,
-        borderRadius: 1,
-        bgcolor: 'background.paper'
-      }}>
-        <div ref={qrCodeRef}>
-          <QRCode
-            value={qrValue}
-            size={256}
-            style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-            fgColor='#000'    // Changed to black
-            bgColor='#fff'    // Changed to white
-          />
-        </div>
-        <Button 
-          variant="contained" 
-          color="primary"
-          sx={{ mt: 2 }}
-          onClick={downloadQRCode}
-        >
-          {isMobile ? "ဘောက်ချာ သိမ်းမည်။" : "ဘောက်ချာ သိမ်းမည်။"}
-        </Button>
-      </Box>
-    );
+  const copyToClipboard = () => {
+    const jsonString = JSON.stringify(orderData, null, 2);
+    navigator.clipboard.writeText(jsonString).then(() => {
+      alert('Order data copied to clipboard!');
+    }).catch(() => {
+      alert('Failed to copy to clipboard');
+    });
   };
 
   const renderCustomerForm = () => (
     <Box sx={{ 
-      // maxWidth: '100%', 
       mx: 'auto', 
       p: 3, 
       bgcolor: 'background.paper', 
@@ -383,7 +247,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           onChange={(e) => handleInputChange('name', e.target.value)}
           error={!!formErrors.name}
           helperText={formErrors.name}
-          placeholder="အမည်ရိုက်ထည့်ပါ"
+          placeholder="အမည်ရိုက်ထည့်ပါ"
         />
 
         {/* Phone Field */}
@@ -395,7 +259,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           onChange={(e) => handleInputChange('phone', e.target.value)}
           error={!!formErrors.phone}
           helperText={formErrors.phone}
-          placeholder="ဖုန်းနံပါတ်ရိုက်ထည့်ပါ e.g., +95 xxxxxxxxx"
+          placeholder="ဖုန်းနံပါတ်ရိုက်ထည့်ပါ e.g., +95 xxxxxxxxx"
         />
 
         {/* City Field */}
@@ -428,17 +292,58 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           disabled={!isFormValid}
           sx={{ mt: 2, py: 1.5 }}
         >
-          ဘောက်ချာထုတ်မည်။
+          အော်ဒါ တင်မည်
         </Button>
       </Box>
     </Box>
   );
 
-  const renderQRSection = () => (
-    <>
-      <Typography sx={{fontSize: 15}} gutterBottom>
-        ဘောက်ချာ စလစ် ကို Gallery ထဲ သိမ်း၍ အောက်ပါ Social Platform များတွင် ငွေချေ ပြီး အော်ဒါတင်ယူပါ။
+  const renderOrderDataSection = () => (
+    <Box sx={{ 
+      p: 3, 
+      bgcolor: 'background.paper', 
+      borderRadius: 2,
+      boxShadow: 1
+    }}>
+      <Typography variant="h6" gutterBottom sx={{ mb: 3, textAlign: 'center' }}>
+        အော်ဒါ အချက်အလက်
       </Typography>
+      
+      <Box sx={{ 
+        bgcolor: '#f5f5f5', 
+        p: 2, 
+        borderRadius: 1, 
+        mb: 3,
+        fontFamily: 'monospace',
+        fontSize: '14px',
+        overflowX: 'auto'
+      }}>
+        <pre>{JSON.stringify(orderData, null, 2)}</pre>
+      </Box>
+
+      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          onClick={copyToClipboard}
+        >
+          Copy JSON Data
+        </Button>
+        
+        <Button
+          variant="outlined"
+          fullWidth
+          onClick={() => setShowOrderData(false)}
+        >
+          အချက်အလက်ပြင်ဆင်မည်
+        </Button>
+      </Box>
+
+      <Typography sx={{fontSize: 15, textAlign: 'center', mt: 3}} gutterBottom>
+        အောက်ပါ Social Platform များတွင် ငွေချေ ပြီး အော်ဒါတင်ယူပါ။
+      </Typography>
+      
       <Box
         sx={{
           display: 'flex',
@@ -449,56 +354,45 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
         }}
       >
         {/* Messenger Icon Button */}
-        <Box>
-          <IconButton
-            aria-label="messenger"
-            sx={{
-              backgroundColor: '#0084FF',
-              color: 'white',
-              transition: 'all 0.3s',
-              '&:hover': {
-                backgroundColor: '#0070D8',
-                transform: 'scale(1.1)'
-              },
-              width: 48,
-              height: 48
-            }}
-            onClick={() => window.open('https://m.me/stickerstoreyangon', '_blank')}
-          >
-            <FacebookIcon />
-          </IconButton>
+        <IconButton
+          aria-label="messenger"
+          sx={{
+            backgroundColor: '#0084FF',
+            color: 'white',
+            transition: 'all 0.3s',
+            '&:hover': {
+              backgroundColor: '#0070D8',
+              transform: 'scale(1.1)'
+            },
+            width: 48,
+            height: 48
+          }}
+          onClick={() => window.open('https://m.me/stickerstoreyangon', '_blank')}
+        >
+          <FacebookIcon />
+        </IconButton>
 
-          {/* Telegram Icon Button */}
-          <IconButton
-            aria-label="telegram"
-            sx={{
-              mx: 1,
-              backgroundColor: '#0088cc',
-              color: 'white',
-              transition: 'all 0.3s',
-              '&:hover': {
-                backgroundColor: '#0077b3',
-                transform: 'scale(1.1)'
-              },
-              width: 48,
-              height: 48
-            }}
-            onClick={() => window.open('https://t.me/your-username', '_blank')}
-          >
-            <TelegramIcon />
-          </IconButton>
-        </Box>
-        <Box sx={{ textAlign: 'center', mb: 2, mt:2 }}>
-          <Button
-            variant="outlined"
-            onClick={() => setShowQR(false)}
-            fullWidth
-          >
-            အချက်အလက်ပြင်ဆင်မည်။
-          </Button>
-        </Box>
+        {/* Telegram Icon Button */}
+        <IconButton
+          aria-label="telegram"
+          sx={{
+            mx: 1,
+            backgroundColor: '#0088cc',
+            color: 'white',
+            transition: 'all 0.3s',
+            '&:hover': {
+              backgroundColor: '#0077b3',
+              transform: 'scale(1.1)'
+            },
+            width: 48,
+            height: 48
+          }}
+          onClick={() => window.open('https://t.me/your-username', '_blank')}
+        >
+          <TelegramIcon />
+        </IconButton>
       </Box>
-    </>
+    </Box>
   );
 
   return (
@@ -555,7 +449,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           gap: { xs: 4, md: 8 },
         }}
       >
-          {!showQR ? (
+          {!showOrderData ? (
             <Box
               sx={{
                 display: { xs: 'none', md: 'block' },
@@ -575,10 +469,9 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
                 flexDirection: 'column'
               }}
             >
-                {renderQRSection()}
-                <Box sx={{px: 10, pb: 10, pt: 4}}>
-                  {generateQR()}
-                </Box>
+              <Box sx={{px: 10, pb: 10, pt: 4, width: '100%'}}>
+                {renderOrderDataSection()}
+              </Box>
             </Box>
           )}
         
@@ -603,16 +496,13 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           </CardContent>
         </Card>
         
-        {/* Mobile Customer Form and QR Code */}
+        {/* Mobile Customer Form and Order Data */}
         <Box sx={{ display: { xs: 'block', md: 'none' }, width: '100%' }}>
-          {!showQR ? (
+          {!showOrderData ? (
             renderCustomerForm()
           ) : (
-            <Box>
-              {renderQRSection()}
-              <Box sx={{pt: 3}}>
-                {generateQR()}
-              </Box>
+            <Box sx={{pt: 3}}>
+              {renderOrderDataSection()}
             </Box>
           )}
         </Box>
