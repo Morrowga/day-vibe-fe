@@ -30,8 +30,8 @@ function MyApp({ Component, pageProps }: NextPageWithLayout) {
                 <CssBaseline />
                 <Head>
                     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-                    <meta name="description" content="Burma World - World Burma" />
-                    <title>Burma World</title>
+                    <meta name="description" content="Day Vibes - Sticker Store" />
+                    <title>Day Vibes - Sticker Store</title>
                 </Head>
                 {getLayout(<Component {...pageProps} />)}
             </ThemeContextProvider>

@@ -99,8 +99,6 @@ const Cart: React.FC<CartDrawerProps> = ({ isOpen, onClose, cartItems, updateCar
       setQuantityError('');
     } else if (totalQuantity < 10) {
       setQuantityError(`အရေအတွက် ${10 - totalQuantity} ခု ထပ်ထည့်ရန် လိုအပ်ပါသည်။`);
-    } else if (totalQuantity > 10) {
-      setQuantityError(`အရေအတွက် ${totalQuantity - 10} ခု လျှော့ရန် လိုအပ်ပါသည်။`);
     } else {
       setQuantityError('');
     }
