@@ -146,7 +146,7 @@ const Cart: React.FC<CartDrawerProps> = ({ isOpen, onClose, cartItems, updateCar
     }
   };
 
-  const isQuantityValid = totalQuantity === 10;
+  const isQuantityValid = totalQuantity >= 10;
 
   return (
     <Drawer

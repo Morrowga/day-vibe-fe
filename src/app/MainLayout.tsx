@@ -1,6 +1,6 @@
 // components/MainLayout.tsx
 import { ReactNode } from 'react';
-import { Container } from '@mui/material';
+import { Box, Container } from '@mui/material';
 import NavBar from '@/components/NavBar';
 
 interface MainLayoutProps {
@@ -11,7 +11,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     return (
         <>
             <NavBar />
-            {children}
+            <Box mb={10}>
+                {children}
+            </Box>
         </>
     );
 };

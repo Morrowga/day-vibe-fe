@@ -232,7 +232,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
       return;
     }
     
-    const scale = 2; // Increase resolution
+    const scale = 4; // Increase resolution for better quality
     
     canvas.width = 256 * scale;
     canvas.height = 256 * scale;
@@ -247,36 +247,35 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
     img.onload = () => {
       if (ctx) {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const pngFile = canvas.toDataURL("image/png", 1.0); // Maximum quality
         
         if (isMobile) {
-          if (navigator.share) {
-            fetch(pngFile)
-              .then(res => res.blob())
-              .then(blob => {
-                const file = new File([blob], "checkout-qr.png", { type: "image/png" });
-                navigator.share({
-                  title: 'Checkout QR Code',
-                  files: [file]
-                }).catch(() => {
-                  // Fallback if sharing fails
-                  const link = document.createElement('a');
-                  link.href = pngFile;
-                  link.download = 'checkout-qr.png';
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                });
+          // For mobile devices
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              console.error('Failed to create blob');
+              return;
+            }
+
+            // Check if Web Share API is available and supports files
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], "test.png", { type: "image/png" })] })) {
+              const file = new File([blob], "checkout-qr.png", { type: "image/png" });
+              navigator.share({
+                title: 'Checkout QR Code',
+                text: 'အော်ဒါ QR ကုဒ်',
+                files: [file]
+              }).catch((error) => {
+                console.error('Share failed:', error);
+                // Fallback to download
+                fallbackDownload(blob);
               });
-          } else {
-            const link = document.createElement('a');
-            link.href = pngFile;
-            link.download = 'checkout-qr.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          }
+            } else {
+              // Fallback for mobile devices without proper share support
+              fallbackDownload(blob);
+            }
+          }, 'image/png', 1.0);
         } else {
+          // For desktop
+          const pngFile = canvas.toDataURL("image/png", 1.0);
           const link = document.createElement('a');
           link.href = pngFile;
           link.download = 'checkout-qr.png';
@@ -293,6 +292,40 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
     
     img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
   };
+
+  const fallbackDownload = (blob:any) => {
+    // Create object URL for the blob
+    const url = URL.createObjectURL(blob);
+    
+    // Try to open the image in a new tab/window
+    // User can then long-press and save to gallery
+    const newWindow = window.open(url, '_blank');
+    
+    if (!newWindow) {
+      // If popup blocked, try direct download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'checkout-qr.png';
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Show instruction to user
+      alert('QR ကုဒ်ကို Gallery တွင် သိမ်းရန် ဓာတ်ပုံပေါ်တွင် နှိပ်၍ ကြာကြာ ဖိထားပြီး "Save to Photos" သို့မဟုတ် "Download" ကို ရွေးပါ။');
+    } else {
+      // Show instruction for the opened image
+      setTimeout(() => {
+        alert('QR ကုဒ်ကို Gallery တွင် သိမ်းရန် ဓာတ်ပုံပေါ်တွင် နှိပ်၍ ကြာကြာ ဖိထားပြီး "Save to Photos" သို့မဟုတ် "Download" ကို ရွေးပါ။');
+      }, 1000);
+    }
+    
+    // Clean up the URL after some time
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 10000);
+  };
+
 
   const generateQR = () => {
     if (!qrValue) return null;
