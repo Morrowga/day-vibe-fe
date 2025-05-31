@@ -1,0 +1,1 @@
+(self.webpackChunk_N_E=self.webpackChunk_N_E||[]).push([[503],{5839:function(n,u,t){(window.__NEXT_P=window.__NEXT_P||[]).push(["/customize-crafts",function(){return t(9545)}])},9545:function(n,u,t){"use strict";t.r(u);var _=t(5893),c=t(7199);u.default=()=>(0,_.jsx)(c.Z,{})}},function(n){n.O(0,[888,774,179],function(){return n(n.s=5839)}),_N_E=n.O()}]);
