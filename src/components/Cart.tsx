@@ -95,14 +95,14 @@ const Cart: React.FC<CartDrawerProps> = ({ isOpen, onClose, cartItems, updateCar
 
   // Check quantity and update error message
   useEffect(() => {
-    if (cartItems.length === 0) {
-      setQuantityError('');
-    } else if (totalQuantity < 10) {
-      setQuantityError(`အရေအတွက် ${10 - totalQuantity} ခု ထပ်ထည့်ရန် လိုအပ်ပါသည်။`);
-    } else {
-      setQuantityError('');
-    }
-  }, [totalQuantity, cartItems.length]);
+  if (cartItems.length === 0) {
+    setQuantityError('');
+  } else if (totalQuantity < 10) {
+    setQuantityError(`အရေအတွက် ${10 - totalQuantity} ခု ထပ်ထည့်ရန် လိုအပ်ပါသည်။`);
+  } else {
+    setQuantityError('');
+  }
+}, [totalQuantity, cartItems.length]);
 
   const openSelectBox = (item: CartItem) => {
     if (item.category.sizes) {
@@ -134,8 +134,7 @@ const Cart: React.FC<CartDrawerProps> = ({ isOpen, onClose, cartItems, updateCar
   };
 
   const handleProceed = () => {
-    if (totalQuantity !== 10) {
-      // Optional: You can add additional feedback here like a toast or alert
+    if (totalQuantity < 10) {
       return;
     }
 
@@ -145,7 +144,6 @@ const Cart: React.FC<CartDrawerProps> = ({ isOpen, onClose, cartItems, updateCar
       handleNavigate('/invoice');
     }
   };
-
   const isQuantityValid = totalQuantity >= 10;
 
   return (
@@ -244,7 +242,7 @@ const Cart: React.FC<CartDrawerProps> = ({ isOpen, onClose, cartItems, updateCar
                       <AddIcon />
                     </IconButton>
                   </Box>
-                  <Typography sx={{ textAlign: 'right' }} variant="body1">
+                  <Typography sx={{ textAlign: 'right', fontSize: {xs: 15} }} variant="body1">
                     {item.actual_price} ကျပ်
                   </Typography>
                 </Box>
@@ -272,8 +270,8 @@ const Cart: React.FC<CartDrawerProps> = ({ isOpen, onClose, cartItems, updateCar
               sx={{ 
                 mb: 1, 
                 fontSize: 15,
-                color: totalQuantity === 10 ? 'success.main' : 'error.main',
-                fontWeight: totalQuantity === 10 ? 'bold' : 'normal'
+                color: totalQuantity >= 10 ? 'success.main' : 'error.main',
+                fontWeight: totalQuantity >= 10 ? 'bold' : 'normal'
               }}
             >
               {totalQuantity} ခု
