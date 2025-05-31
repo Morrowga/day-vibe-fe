@@ -5,8 +5,8 @@
   "devFiles": [],
   "ampDevFiles": [],
   "lowPriorityFiles": [
-    "static/gy2ztRPSvmxgwrknIVfmP/_buildManifest.js",
-    "static/gy2ztRPSvmxgwrknIVfmP/_ssgManifest.js"
+    "static/I7EkNWSpUmB0vXjsHOFtR/_buildManifest.js",
+    "static/I7EkNWSpUmB0vXjsHOFtR/_ssgManifest.js"
   ],
   "rootMainFiles": [
     "static/chunks/webpack-35b091ca5c5192ac.js",
@@ -25,7 +25,7 @@
       "static/chunks/framework-e05ea5e0d521922e.js",
       "static/chunks/main-25740267a277be25.js",
       "static/chunks/107-e2f1f816e28ae2fd.js",
-      "static/chunks/969-6d8069cc7bdeeaa4.js",
+      "static/chunks/969-d9374771f7f6c6a2.js",
       "static/chunks/903-f5fc07abd6dcd636.js",
       "static/chunks/pages/Fancy-d8db665d4ad10201.js"
     ],
@@ -47,7 +47,7 @@
       "static/chunks/framework-e05ea5e0d521922e.js",
       "static/chunks/main-25740267a277be25.js",
       "static/chunks/107-e2f1f816e28ae2fd.js",
-      "static/chunks/969-6d8069cc7bdeeaa4.js",
+      "static/chunks/969-d9374771f7f6c6a2.js",
       "static/chunks/903-f5fc07abd6dcd636.js",
       "static/chunks/pages/badges-48164bd8084f4dc4.js"
     ],
@@ -63,7 +63,7 @@
       "static/chunks/main-25740267a277be25.js",
       "static/chunks/107-e2f1f816e28ae2fd.js",
       "static/chunks/852-ba451545f8258455.js",
-      "static/chunks/969-6d8069cc7bdeeaa4.js",
+      "static/chunks/969-d9374771f7f6c6a2.js",
       "static/chunks/pages/invoice-812f786451548f1b.js"
     ],
     "/mini-mart": [
@@ -77,7 +77,7 @@
       "static/chunks/framework-e05ea5e0d521922e.js",
       "static/chunks/main-25740267a277be25.js",
       "static/chunks/107-e2f1f816e28ae2fd.js",
-      "static/chunks/969-6d8069cc7bdeeaa4.js",
+      "static/chunks/969-d9374771f7f6c6a2.js",
       "static/chunks/903-f5fc07abd6dcd636.js",
       "static/chunks/pages/posters-ff6a6b01a8f0bcb4.js"
     ],
@@ -86,7 +86,7 @@
       "static/chunks/framework-e05ea5e0d521922e.js",
       "static/chunks/main-25740267a277be25.js",
       "static/chunks/107-e2f1f816e28ae2fd.js",
-      "static/chunks/969-6d8069cc7bdeeaa4.js",
+      "static/chunks/969-d9374771f7f6c6a2.js",
       "static/chunks/903-f5fc07abd6dcd636.js",
       "static/chunks/pages/stickers-e4e85c45b46bc535.js"
     ]
