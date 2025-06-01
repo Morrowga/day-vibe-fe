@@ -5,8 +5,8 @@
   "devFiles": [],
   "ampDevFiles": [],
   "lowPriorityFiles": [
-    "static/SqNLTtnHDsLm7CEPPNsxx/_buildManifest.js",
-    "static/SqNLTtnHDsLm7CEPPNsxx/_ssgManifest.js"
+    "static/cIkNVCteIaS3cletsDvV6/_buildManifest.js",
+    "static/cIkNVCteIaS3cletsDvV6/_ssgManifest.js"
   ],
   "rootMainFiles": [
     "static/chunks/webpack-35b091ca5c5192ac.js",
@@ -34,7 +34,7 @@
       "static/chunks/framework-e05ea5e0d521922e.js",
       "static/chunks/main-25740267a277be25.js",
       "static/css/6d54b52db12f21f5.css",
-      "static/chunks/pages/_app-79ebed09c2bd65e9.js"
+      "static/chunks/pages/_app-cd40e63b5d345afa.js"
     ],
     "/_error": [
       "static/chunks/webpack-35b091ca5c5192ac.js",
@@ -62,9 +62,9 @@
       "static/chunks/framework-e05ea5e0d521922e.js",
       "static/chunks/main-25740267a277be25.js",
       "static/chunks/107-e2f1f816e28ae2fd.js",
-      "static/chunks/957-70b416a8ee4b7adc.js",
+      "static/chunks/852-ba451545f8258455.js",
       "static/chunks/969-e190bb7a6cb5a7ad.js",
-      "static/chunks/pages/invoice-f3af2f506ddd207c.js"
+      "static/chunks/pages/invoice-bb4612dcb380cd85.js"
     ],
     "/mini-mart": [
       "static/chunks/webpack-35b091ca5c5192ac.js",

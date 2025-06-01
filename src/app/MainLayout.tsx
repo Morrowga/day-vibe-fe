@@ -11,7 +11,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
     return (
         <>
             <NavBar />
-            <Box mb={10}>
+            <Box mb={{lg: 0, xs: 10}}>
                 {children}
             </Box>
         </>

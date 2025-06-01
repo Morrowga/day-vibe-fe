@@ -12,94 +12,124 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
 import { setItems, setTotalAmount, setTotalQuantity } from '../src/redux/slices/checkoutSlice';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import QRCode from 'react-qr-code';
 import { IconButton } from '@mui/material';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import TelegramIcon from '@mui/icons-material/Telegram';
 
+interface CityData {
+  name_en: string;
+  name_mm: string;
+}
+
 const steps = ['Shipping address', 'Payment details', 'Review your order'];
 
 // Myanmar cities list for autocomplete
-const myanmarCities = [
-  // Ayeyarwady Region
-  'ပုသိမ်', '၀ါးခယ်မ', 'သာပေါင်း', 'အမာ', 'ညောင်တုန်း', 'ဘိုကလေး', 'ငွေဆောင်', 
-  'လေးမျက်နှာ', 'ရေကြည်', 'ကျောင်းကုန်း', 'ဒေးဒရဲ', 'ကျူံပျော်', 'အင်္ဂပူ', 'ဇလွန်', 
-  'ကြံခင်း', 'ကျိူက်လတ်', 'ပန်းတနော်', 'ဒူးယား', 'ချောင်းသာ', 'အိမ်မဲ', 'မြန်အောင်', 
-  'မအူပင်', 'ကန်ကြီးထောင့်', 'ငပုတော', 'ဟင်္သာတ', 'လပွတ္တာ', 'မြောင်းမြ', 'ဖျာပုံ',
+const myanmarCitiesData = {
+  "aya": [
+    { "name_en": "Pathein", "name_mm": "ပုသိမ်" },
+    { "name_en": "Warkhalma", "name_mm": "၀ါးခယ်မ" },
+    { "name_en": "Tharpaung", "name_mm": "သာပေါင်း" },
+    { "name_en": "Ahmar", "name_mm": "အမာ" },
+    { "name_en": "Nyaungtone", "name_mm": "ညောင်တုန်း" },
+    { "name_en": "Bokalay", "name_mm": "ဘိုကလေး" },
+    { "name_en": "Ngwesaung", "name_mm": "ငွေဆောင်" },
+    { "name_en": "Laymyatnar", "name_mm": "လေးမျက်နှာ" },
+    { "name_en": "Yaykyi", "name_mm": "ရေကြည်" },
+    { "name_en": "Kyaungkone", "name_mm": "ကျောင်းကုန်း" },
+    { "name_en": "Daydaye", "name_mm": "ဒေးဒရဲ" },
+    { "name_en": "Kyonepyor", "name_mm": "ကျူံပျော်" },
+    { "name_en": "Ingapu", "name_mm": "အင်္ဂပူ" },
+    { "name_en": "Zalun", "name_mm": "ဇလွန်" },
+    { "name_en": "Kyankhin", "name_mm": "ကြံခင်း" },
+    { "name_en": "Kyaiklat", "name_mm": "ကျိူက်လတ်" },
+    { "name_en": "Pantanaw", "name_mm": "ပန်းတနော်" },
+    { "name_en": "Duuyaa", "name_mm": "ဒူးယား" },
+    { "name_en": "Chaungthar", "name_mm": "ချောင်းသာ" },
+    { "name_en": "Eain Mal", "name_mm": "အိမ်မဲ" },
+    { "name_en": "Myanaung", "name_mm": "မြန်အောင်" },
+    { "name_en": "Maubin", "name_mm": "မအူပင်" },
+    { "name_en": "Kangyidaunt", "name_mm": "ကန်ကြီးထောင့်" },
+    { "name_en": "Ngaputaw", "name_mm": "ငပုတော" },
+    { "name_en": "Hinthada", "name_mm": "ဟင်္သာတ" },
+    { "name_en": "Labutta", "name_mm": "လပွတ္တာ" },
+    { "name_en": "Myaungmya", "name_mm": "မြောင်းမြ" },
+    { "name_en": "Pyapon", "name_mm": "ဖျာပုံ" }
+  ],
+  "bgo": [
+    { "name_en": "Bago", "name_mm": "ပဲခူး" },
+    { "name_en": "Shwetaung", "name_mm": "ရွှေတောင်" },
+    { "name_en": "Zeekone", "name_mm": "ဇီးကုန်း" },
+    { "name_en": "Latpantan", "name_mm": "လက်ပံတန်း" },
+    { "name_en": "Minhla", "name_mm": "မင်းလှ" },
+    { "name_en": "Kyaukkyi", "name_mm": "ကျောက်ကြီး" },
+    { "name_en": "Oakpho", "name_mm": "အုတ်ဖို" },
+    { "name_en": "Monyo", "name_mm": "မိုးညို" },
+    { "name_en": "Paungtal", "name_mm": "ပေါင်းတည်" },
+    { "name_en": "Oaktwin", "name_mm": "အုတ်တွင်း" },
+    { "name_en": "Kawa", "name_mm": "က၀" },
+    { "name_en": "Yaytarshay", "name_mm": "ရေတာရှည်" },
+    { "name_en": "Shwekyin", "name_mm": "ရွှေကျင်" },
+    { "name_en": "Thanatpin", "name_mm": "သနပ်ပင်" },
+    { "name_en": "Phyuu", "name_mm": "ဖြူး" },
+    { "name_en": "Paukkhaung", "name_mm": "ပေါက်ခေါင်း" },
+    { "name_en": "Pantaung", "name_mm": "ပန်းတောင်း" },
+    { "name_en": "Kyohpinkauk", "name_mm": "ကြို့ပင်ကောက်" },
+    { "name_en": "DeikU", "name_mm": "ဒိုက်ဦး" },
+    { "name_en": "Kyauktaga", "name_mm": "ကျောက်တံခါး" },
+    { "name_en": "Pyontansar", "name_mm": "ပြွန်တန်ဆာ" },
+    { "name_en": "Pyay", "name_mm": "ပြည်" },
+    { "name_en": "Tharrawaddy", "name_mm": "သာယာ၀တီ" },
+    { "name_en": "Nyaunglebin", "name_mm": "ညောင်လေးပင်" },
+    { "name_en": "Nattalin", "name_mm": "နတ်တလင်း" },
+    { "name_en": "Taunggo", "name_mm": "တောင်ငူ" }
+  ],
+  // ... (include all other regions from your JSON)
+  "ygn": [
+    { "name_en": "Yangon", "name_mm": "ရန်ကုန်" },
+    { "name_en": "Thanlyin", "name_mm": "သံလျင်" },
+    { "name_en": "Mhawbi", "name_mm": "မှော်ဘီ" },
+    { "name_en": "Taikkyi", "name_mm": "တိုက်ကြီး" },
+    { "name_en": "Kyauktan", "name_mm": "ကျောက်တန်း" },
+    { "name_en": "Thonegwa", "name_mm": "သုံးခွ" },
+    { "name_en": "Khayen", "name_mm": "ခရမ်း" },
+    { "name_en": "Zayatkwin", "name_mm": "ဇရပ်ကွင်း" },
+    { "name_en": "Oakkan", "name_mm": "ဥက္ကံ" },
+    { "name_en": "Phaunggyi", "name_mm": "ဖောင်ကြီး" },
+    { "name_en": "Myaungtagar", "name_mm": "မြောင်းတကာ" },
+    { "name_en": "Htantapin", "name_mm": "ထန်းတပင်" },
+    { "name_en": "Kawtmhu", "name_mm": "ကော့မှူး" },
+    { "name_en": "Konchankon", "name_mm": "ကွန်းခြံကုန်း" },
+    { "name_en": "Twante", "name_mm": "တွံတေး" },
+    { "name_en": "Dabein", "name_mm": "ဒါးပိန်" },
+    { "name_en": "Hleku", "name_mm": "လှည်းကူး" },
+    { "name_en": "Kokoekyon", "name_mm": "ကိုကိုးကျွန်း" }
+  ],
+  "npt": [
+    { "name_en": "Naypyitaw", "name_mm": "နေပြည်တော်" },
+    { "name_en": "Lewe", "name_mm": "လယ်၀ေး" },
+    { "name_en": "Pyinmana", "name_mm": "ပျဥ်းမနား" },
+    { "name_en": "Tatkone", "name_mm": "တပ်ကုန်း" }
+  ]
+};
 
-  // Bago Region
-  'ပဲခူး', 'ရွှေတောင်', 'ဇီးကုန်း', 'လက်ပံတန်း', 'မင်းလှ', 'ကျောက်ကြီး', 'အုတ်ဖို', 
-  'မိုးညို', 'ပေါင်းတည်', 'အုတ်တွင်း', 'က၀', 'ရေတာရှည်', 'ရွှေကျင်', 'သနပ်ပင်', 'ဖြူး', 
-  'ပေါက်ခေါင်း', 'ပန်းတောင်း', 'ကြို့ပင်ကောက်', 'ဒိုက်ဦး', 'ကျောက်တံခါး', 'ပြွန်တန်ဆာ', 
-  'ပြည်', 'သာယာ၀တီ', 'ညောင်လေးပင်', 'နတ်တလင်း', 'တောင်ငူ',
+const getAllCities = (): CityData[] => {
+  const allCities: CityData[] = [];
+  Object.values(myanmarCitiesData).forEach(region => {
+    region.forEach(city => allCities.push(city));
+  });
+  return allCities;
+};
 
-  // Chin State
-  'ဟားခါး', 'မတူပီ', 'ကန်ပက်လက်', 'ကျီခါး', 'ဖလမ်း', 'မင်းတပ်', 'ကလေး', 'ပလက်၀', 
-  'ထန်တလန်', 'တွန်းဇံ', 'တီးတိန်',
-
-  // Kachin State
-  'မန်စီ', '၀ိုင်းမော်', 'ဆဒေါင်', 'ရှင်ဗွေယန်', 'လွယ်ဂျယ်', 'မိုးမောက်', 'ပူတာအို', 
-  'မြစ်ကြီးနား', 'တနိုင်း', 'ရွှေကူ', 'မိုးညှင်း', 'ဖားကန့်', 'ဗန်းမော်', 'မိုးကောင်း', 
-  'ကာမိုင်း', 'အင်းတော်', 'မချမ်းဘော', 'ဟိုပင်',
-
-  // Kayah State
-  'လွိုင်ကော်', 'မယ်စဲ့', 'ဖရူဆို', 'ဘော်လခဲ', 'ဖားဆောင်း', 'ရှားတော', 'ဒီမောဆို',
-
-  // Kayin State
-  'ဖားအံ', 'သံတောင်ကြီး', 'မြ၀တီ', 'ကမမောင်း', 'မာနယ်ပလော', 'ကော့ကရိတ်', 'ဘီးလင်း', 
-  'လှိုင်းဘွဲ့', 'ဘုရားသုံးဆူ', 'ရှမ်းရွာသစ်', 'ကြာအင်းဆိပ်ကြီး', 'ဖာပွန်',
-
-  // Magway Region
-  'မကွေး', 'မင်းဘူး', 'သရက်', 'တောင်တွင်းကြီး', 'နက်မောက်', 'ဂန့်ဂေါ', 'ငဖဲ', 'ချောက်', 
-  'ဗိဿနိုး', 'မင်းတုန်း ', 'ပခုက္ကူ', 'အောင်လံ', 'စလင်း', 'ပွင့်ဖြူ', 'ဆော', 'ရေနံချောင်း', 
-  'မြိုင်', 'ပေါက်', 'ကျောက်ထု', 'မြို့သစ်', 'ရေစကြို', 'စလေ', 'ထီးလင်း',
-
-  // Mandalay Region
-  'မန္တလေး', 'မိတ္ထီလာ', 'မတ္တရာ', 'ပုဂံ မြို့ဟောင်း', 'မိုးကုတ်', 'Mahlaing', 'အင်း၀', 
-  'ကျောက်ပန်းတောင်း', 'ညောင်ဦး', 'ပြင်ဦးလွင်', 'မြစ်သား', 'မြင်းခြံ', 'သပိတ်ကျဥ်း', 
-  '၀မ်းတွင်း', 'ပျော်ဘွယ်', 'တောင်သာ', 'နွားထိုးကြီး', 'ဆိပ်ဖြူ', 'ရမည်းသင်း', 'တံတားဦး', 
-  'စဥ့်ကူ', 'စဥ့်ကိုင်', 'ကျောက်ဆည်', 'တကောင်း', 'သာစည်',
-
-  // Mon State
-  'မော်လမြိုင်', 'ကျိုက်ထို', 'ရေး', 'မုဒုံ', 'ပေါင်', 'သံဖြူဇရပ်', 'မုတ္တမ', 'ကျိူက်မရော', 
-  'သထုံ', 'ကျိုက္ခမီ', 'ချောင်းဆုံ',
-
-  // Rakhine State
-  'စစ်တွေ', 'ဘူးသီးတောင်', 'မာန်အောင်', 'ရသေ့တောင်', '၀ေသာလီ', 'တောင်ကုတ်', 'မြောက်ဦး', 
-  'မင်းပြား', 'မြေပုံ', 'မောင်တော', 'သံတွဲ', 'အမ်း', 'ပုဏ္ဏားကျွန်း', 'ရမ်းဗြဲ', 'ဓည၀တီ', 
-  'ကျော်တော်',
-
-  // Sagaing Region
-  'စစ်ကိုင်း', 'တမူး', 'ယင်းမာပင်', 'လေရှီး', 'ကသာ', 'မြင်းမူ', 'ကနီ', 'လဟယ်', '၀က်လက်', 
-  'ခန္တီး', 'ချောင်းဦး', 'မုံရွာ', '၀န်းသို', 'ကန့်ဘလူ', 'နန်းယွန်း', 'ဟုမ္မလင်း', 'မော်လိုက်', 
-  'ရေဦး', 'ရွှေဘို', 'ထီးချိူင့်', 'ပင်လည်ဘူး', 'ခင်ဦး', 'တန့်ဆည်', 'ဖောင်းပြင်', 'ကောလင်း', 
-  'အရာတော်', 'မင်းကွန်း', 'ဘုတလင်', 'ဆားတောင်', 'ဗမောက်', 'ဆားလင်းကြီး',
-
-  // Shan State
-  'ရွာငံ', 'ကလော', 'ပင်းတယ', 'လောက်ကိုင်', 'မိုင်းလား', 'မိုင်းဖြတ်', 'ညောင်ရွှေ', 'မောက်မယ်', 
-  'တန့်ယန်း', 'ကွန်ဟိန်း', 'ရပ်စောက်', 'နမ့်မတူ', 'တောင်ကြီး', 'ကျိုင်းတုံ', 'တာချီလိတ်', 
-  'မိုးမိတ်', 'မုန်းကိုး', 'နမ့်ခမ်း', 'ကျောက်မဲ', 'နမ့်စန်', 'မန်တုံ', 'ကွတ်ခိုင်', 'လဲချား', 
-  'ပန်ဆန်း', 'မိုင်းတုံ', 'ပင်လုံ', 'မူဆယ်', 'မိုးနဲ', 'မိုင်းပန်', 'မိုင်းရှူး', 'အောင်ပန်း', 
-  'ပင်လောင်း', 'ပေါင်းလောင်း', 'နောင်တရား', 'ဟိုပုံး', 'မိုင်းဆတ်', 'လားရှိုး', 'မိုင်းရယ်', 
-  'မိုင်းမော', 'ဟိုပန်', 'ပန်၀ိုင်', 'ပန်လုံ', 'မက်မန်း', 'နားဖန်း', 'သီပေါ', 
-  'သန္နီ', 'ဆီဆိုင်', 'နောင်ချိူ', 'လွိုင်လင်', 'ကွမ်းလုံ',
-
-  // Tanintharyi Region
-  'ဘုတ်ပြင်း', 'ကျွန်းစု', 'ပုလော', 'ထား၀ယ်', 'လောင်းလုံ', 'သရက်ချောင်း', 'မြိတ်', 
-  'ကော့သောင်း', 'ရေဖြူ',
-
-  // Yangon Region
-  'ရန်ကုန်', 'သံလျင်', 'မှော်ဘီ', 'တိုက်ကြီး', 'ကျောက်တန်း', 'သုံးခွ', 'ခရမ်း', 'ဇရပ်ကွင်း', 
-  'ဥက္ကံ', 'ဖောင်ကြီး', 'မြောင်းတကာ', 'ထန်းတပင်', 'ကော့မှူး', 'ကွန်းခြံကုန်း', 'တွံတေး', 
-  'ဒါးပိန်', 'လှည်းကူး', 'ကိုကိုးကျွန်း',
-
-  // Naypyidaw Union Territory
-  'နေပြည်တော်', 'လယ်၀ေး', 'ပျဥ်းမနား', 'တပ်ကုန်း'
-];
+const allCitiesData = getAllCities();
+const myanmarCityNames = allCitiesData.map(city => city.name_mm); // For display in autocomplete
+const cityNameMap = new Map(allCitiesData.map(city => [city.name_mm, city.name_en])); // For mapping to English
 
 export default function Checkout(props: { disableCustomTheme?: boolean }) {
   const checkoutData = useSelector((state: RootState) => state.checkout);
   const {totalQuantity, totalAmount, items} = useSelector((state: any) => state.cart);
+  const [qrValue, setQrValue] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   
   // Form state
@@ -114,11 +144,11 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
     city: ''
   });
   const [isFormValid, setIsFormValid] = useState(false);
-  const [showOrderData, setShowOrderData] = useState(false);
-  const [orderData, setOrderData] = useState<any>(null);
+  const [showQR, setShowQR] = useState(false);
 
   const router = useRouter();
   const dispatch = useDispatch();
+  const qrCodeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     dispatch(setTotalAmount(totalAmount));  
@@ -182,32 +212,40 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
 
   // Handle form submission
   const handleFormSubmit = () => {
-    if (validateForm()) {
-      // Generate order data
-      if (items && items.length > 0) {
-        const simplifiedItems = items.map((item: { id: any; size: any; quantity: any; }) => ({
-          id: item.id,
-          s: item.size,
-          q: item.quantity
-        }));
-        
-        const newOrderData = {
-          items: simplifiedItems,
-          tq: totalQuantity,
-          ta: totalAmount,
-          n: formData.name.trim(),
-          p: formData.phone.trim(),
-          c: formData.city.trim(),
-          timestamp: Date.now()
-        };
-        
-        console.log('Order Data Object:', newOrderData);
-        
-        setOrderData(newOrderData);
-        setShowOrderData(true);
-      }
+  if (validateForm()) {
+    if (items && items.length > 0) {
+      const simplifiedItems = items.map((item:any) => ({
+        id: item.id,
+        s: item.size,
+        q: item.quantity
+      }));
+      
+      // Get English city name for QR code
+      const englishCityName = cityNameMap.get(formData.city.trim()) || formData.city.trim();
+      
+      const orderData = {
+        items: simplifiedItems,
+        tq: totalQuantity,
+        ta: totalAmount,
+        n: formData.name.trim(),
+        p: formData.phone.trim(),
+        c: englishCityName, // Save English name in QR
+        timestamp: Date.now()
+      };
+      
+      const qrDataString = JSON.stringify(orderData);
+      
+      console.log('City (Myanmar):', formData.city.trim());
+      console.log('City (English):', englishCityName);
+      
+      setQrValue('');
+      setTimeout(() => {
+        setQrValue(qrDataString);
+        setShowQR(true);
+      }, 100);
     }
-  };
+  }
+};
 
   // Validate form on input changes
   useEffect(() => {
@@ -216,17 +254,240 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
     }
   }, [formData]);
 
-  const copyToClipboard = () => {
-    const jsonString = JSON.stringify(orderData, null, 2);
-    navigator.clipboard.writeText(jsonString).then(() => {
-      alert('Order data copied to clipboard!');
-    }).catch(() => {
-      alert('Failed to copy to clipboard');
-    });
+  const downloadQRCode = () => {
+    if (!qrCodeRef.current) return;
+    
+    const svg = qrCodeRef.current.querySelector('svg');
+    if (!svg) return;
+    
+    // Create a higher resolution canvas
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    
+    // Check if context is available
+    if (!ctx) {
+      console.error('Unable to get canvas context');
+      return;
+    }
+    
+    const scale = 2; // Increase resolution
+    
+    canvas.width = 256 * scale;
+    canvas.height = 256 * scale;
+    
+    // Set white background
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const img = new Image();
+    
+    img.onload = () => {
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const pngFile = canvas.toDataURL("image/png", 1.0); // Maximum quality
+        
+        if (isMobile) {
+          // For mobile devices, open QR code in a new window/tab for screenshot
+          const newWindow = window.open('', '_blank');
+          if (newWindow) {
+            newWindow.document.write(`
+              <!DOCTYPE html>
+              <html>
+                <head>
+                  <title>QR Code - Screenshot</title>
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <style>
+                    body {
+                      margin: 0;
+                      padding: 20px;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      justify-content: center;
+                      min-height: 100vh;
+                      background-color: #ffffff;
+                      font-family: Arial, sans-serif;
+                    }
+                    .qr-container {
+                      text-align: center;
+                      background: white;
+                      padding: 30px;
+                      border-radius: 10px;
+                      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    }
+                    .qr-image {
+                      max-width: 100%;
+                      height: auto;
+                      margin: 20px 0;
+                    }
+                    .title {
+                      color: #333;
+                      margin-bottom: 15px;
+                      font-size: 18px;
+                      font-weight: bold;
+                    }
+                    .instruction {
+                      color: #666;
+                      font-size: 14px;
+                      margin-top: 15px;
+                      line-height: 1.4;
+                    }
+                    .close-btn {
+                      background-color: #1976d2;
+                      color: white;
+                      border: none;
+                      padding: 12px 24px;
+                      border-radius: 6px;
+                      font-size: 16px;
+                      margin-top: 20px;
+                      cursor: pointer;
+                    }
+                    .close-btn:hover {
+                      background-color: #1565c0;
+                    }
+                  </style>
+                </head>
+                <body>
+                  <div class="qr-container">
+                    <div class="title">Checkout QR Code</div>
+                    <img src="${pngFile}" alt="QR Code" class="qr-image" />
+                    <div class="instruction">
+                      Take a screenshot of this QR code<br>
+                      ဤ QR Code ကို Screenshot ယူပါ
+                    </div>
+                    <button class="close-btn" onclick="window.close()">Close / ပိတ်မည်</button>
+                  </div>
+                </body>
+              </html>
+            `);
+            newWindow.document.close();
+          } else {
+            // Fallback: Create a modal-like overlay on the current page
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+              position: fixed;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              background-color: rgba(0, 0, 0, 0.8);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              z-index: 10000;
+              padding: 20px;
+              box-sizing: border-box;
+            `;
+            
+            const qrModal = document.createElement('div');
+            qrModal.style.cssText = `
+              background: white;
+              padding: 30px;
+              border-radius: 10px;
+              text-align: center;
+              max-width: 90%;
+              max-height: 90%;
+              overflow: auto;
+            `;
+            
+            qrModal.innerHTML = `
+              <h3 style="margin-top: 0; color: #333;">QR Code for Screenshot</h3>
+              <img src="${pngFile}" alt="QR Code" style="max-width: 100%; height: auto; margin: 20px 0;" />
+              <p style="color: #666; font-size: 14px;">Take a screenshot of this QR code<br>ဤ QR Code ကို Screenshot ယူပါ</p>
+              <button id="closeModal" style="background-color: #1976d2; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;">
+                Close / ပိတ်မည်
+              </button>
+            `;
+            
+            overlay.appendChild(qrModal);
+            document.body.appendChild(overlay);
+            
+            // Close modal when clicking close button or overlay
+            const closeModal = () => {
+              document.body.removeChild(overlay);
+            };
+            
+            qrModal.querySelector('#closeModal')?.addEventListener('click', closeModal);
+            overlay.addEventListener('click', (e) => {
+              if (e.target === overlay) closeModal();
+            });
+          }
+        } else {
+          // For desktop, keep the download functionality
+          const link = document.createElement('a');
+          link.href = pngFile;
+          link.download = 'checkout-qr.png';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+    };
+    
+    img.onerror = () => {
+      console.error('Failed to load SVG image');
+    };
+    
+    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+  };
+
+  const generateQR = () => {
+    if (!qrValue || qrValue.length === 0) {
+      console.log('No QR value available');
+      return null;
+    }
+    
+    console.log('Generating QR with value:', qrValue);
+    
+    // Try to parse the QR value to verify it's complete
+    try {
+      const parsedData = JSON.parse(qrValue);
+      console.log('Parsed QR data:', parsedData);
+    } catch (e) {
+      console.error('QR value is not valid JSON:', e);
+    }
+    
+    return (
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column',
+        alignItems: 'center',
+        p: 5,
+        borderRadius: 1,
+        bgcolor: 'background.paper'
+      }}>
+        {/* Show actual QR content for debugging */}
+        {/* <Typography variant="caption" sx={{ mb: 2, color: 'text.secondary', fontSize: '10px', maxWidth: '300px', wordBreak: 'break-all' }}>
+          Full QR Content: {qrValue}
+        </Typography>
+         */}
+        <div ref={qrCodeRef} key={qrValue}>
+          <QRCode
+            value={qrValue}
+            size={256}
+            level="M" // Add error correction level
+            style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+            fgColor='#000'
+            bgColor='#fff'
+          />
+        </div>
+        
+        <Button 
+          variant="contained" 
+          color="primary"
+          sx={{ mt: 2 }}
+          onClick={downloadQRCode}
+        >
+          {isMobile ? "ဘောက်ချာ သိမ်းမည်။" : "ဘောက်ချာ သိမ်းမည်။"}
+        </Button>
+      </Box>
+    );
   };
 
   const renderCustomerForm = () => (
     <Box sx={{ 
+      // maxWidth: '100%', 
       mx: 'auto', 
       p: 3, 
       bgcolor: 'background.paper', 
@@ -247,7 +508,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           onChange={(e) => handleInputChange('name', e.target.value)}
           error={!!formErrors.name}
           helperText={formErrors.name}
-          placeholder="အမည်ရိုက်ထည့်ပါ"
+          placeholder="အမည်ရိုက်ထည့်ပါ"
         />
 
         {/* Phone Field */}
@@ -259,12 +520,12 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           onChange={(e) => handleInputChange('phone', e.target.value)}
           error={!!formErrors.phone}
           helperText={formErrors.phone}
-          placeholder="ဖုန်းနံပါတ်ရိုက်ထည့်ပါ e.g., +95 xxxxxxxxx"
+          placeholder="ဖုန်းနံပါတ်ရိုက်ထည့်ပါ e.g., +95 xxxxxxxxx"
         />
 
         {/* City Field */}
         <Autocomplete
-          options={myanmarCities}
+          options={myanmarCityNames} // Display Myanmar names
           value={formData.city}
           onChange={(event, newValue) => {
             handleInputChange('city', newValue || '');
@@ -292,58 +553,17 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           disabled={!isFormValid}
           sx={{ mt: 2, py: 1.5 }}
         >
-          အော်ဒါ တင်မည်
+          ဘောက်ချာထုတ်မည်။
         </Button>
       </Box>
     </Box>
   );
 
-  const renderOrderDataSection = () => (
-    <Box sx={{ 
-      p: 3, 
-      bgcolor: 'background.paper', 
-      borderRadius: 2,
-      boxShadow: 1
-    }}>
-      <Typography variant="h6" gutterBottom sx={{ mb: 3, textAlign: 'center' }}>
-        အော်ဒါ အချက်အလက်
+  const renderQRSection = () => (
+    <>
+      <Typography sx={{fontSize: 15}} gutterBottom>
+        ဘောက်ချာ စလစ် ကို Gallery ထဲ သိမ်း၍ အောက်ပါ Social Platform များတွင် ငွေချေ ပြီး အော်ဒါတင်ယူပါ။
       </Typography>
-      
-      <Box sx={{ 
-        bgcolor: '#f5f5f5', 
-        p: 2, 
-        borderRadius: 1, 
-        mb: 3,
-        fontFamily: 'monospace',
-        fontSize: '14px',
-        overflowX: 'auto'
-      }}>
-        <pre>{JSON.stringify(orderData, null, 2)}</pre>
-      </Box>
-
-      <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          onClick={copyToClipboard}
-        >
-          Copy JSON Data
-        </Button>
-        
-        <Button
-          variant="outlined"
-          fullWidth
-          onClick={() => setShowOrderData(false)}
-        >
-          အချက်အလက်ပြင်ဆင်မည်
-        </Button>
-      </Box>
-
-      <Typography sx={{fontSize: 15, textAlign: 'center', mt: 3}} gutterBottom>
-        အောက်ပါ Social Platform များတွင် ငွေချေ ပြီး အော်ဒါတင်ယူပါ။
-      </Typography>
-      
       <Box
         sx={{
           display: 'flex',
@@ -354,45 +574,56 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
         }}
       >
         {/* Messenger Icon Button */}
-        <IconButton
-          aria-label="messenger"
-          sx={{
-            backgroundColor: '#0084FF',
-            color: 'white',
-            transition: 'all 0.3s',
-            '&:hover': {
-              backgroundColor: '#0070D8',
-              transform: 'scale(1.1)'
-            },
-            width: 48,
-            height: 48
-          }}
-          onClick={() => window.open('https://m.me/stickerstoreyangon', '_blank')}
-        >
-          <FacebookIcon />
-        </IconButton>
+        <Box>
+          <IconButton
+            aria-label="messenger"
+            sx={{
+              backgroundColor: '#0084FF',
+              color: 'white',
+              transition: 'all 0.3s',
+              '&:hover': {
+                backgroundColor: '#0070D8',
+                transform: 'scale(1.1)'
+              },
+              width: 48,
+              height: 48
+            }}
+            onClick={() => window.open('https://m.me/stickerstoreyangon', '_blank')}
+          >
+            <FacebookIcon />
+          </IconButton>
 
-        {/* Telegram Icon Button */}
-        <IconButton
-          aria-label="telegram"
-          sx={{
-            mx: 1,
-            backgroundColor: '#0088cc',
-            color: 'white',
-            transition: 'all 0.3s',
-            '&:hover': {
-              backgroundColor: '#0077b3',
-              transform: 'scale(1.1)'
-            },
-            width: 48,
-            height: 48
-          }}
-          onClick={() => window.open('https://t.me/your-username', '_blank')}
-        >
-          <TelegramIcon />
-        </IconButton>
+          {/* Telegram Icon Button */}
+          <IconButton
+            aria-label="telegram"
+            sx={{
+              mx: 1,
+              backgroundColor: '#0088cc',
+              color: 'white',
+              transition: 'all 0.3s',
+              '&:hover': {
+                backgroundColor: '#0077b3',
+                transform: 'scale(1.1)'
+              },
+              width: 48,
+              height: 48
+            }}
+            onClick={() => window.open('https://t.me/your-username', '_blank')}
+          >
+            <TelegramIcon />
+          </IconButton>
+        </Box>
+        <Box sx={{ textAlign: 'center', mb: 2, mt:2 }}>
+          <Button
+            variant="outlined"
+            onClick={() => setShowQR(false)}
+            fullWidth
+          >
+            အချက်အလက်ပြင်ဆင်မည်။
+          </Button>
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 
   return (
@@ -449,7 +680,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           gap: { xs: 4, md: 8 },
         }}
       >
-          {!showOrderData ? (
+          {!showQR ? (
             <Box
               sx={{
                 display: { xs: 'none', md: 'block' },
@@ -469,9 +700,10 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
                 flexDirection: 'column'
               }}
             >
-              <Box sx={{px: 10, pb: 10, pt: 4, width: '100%'}}>
-                {renderOrderDataSection()}
-              </Box>
+                {renderQRSection()}
+                <Box sx={{px: 10, pb: 10, pt: 4}}>
+                  {generateQR()}
+                </Box>
             </Box>
           )}
         
@@ -496,13 +728,16 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           </CardContent>
         </Card>
         
-        {/* Mobile Customer Form and Order Data */}
+        {/* Mobile Customer Form and QR Code */}
         <Box sx={{ display: { xs: 'block', md: 'none' }, width: '100%' }}>
-          {!showOrderData ? (
+          {!showQR ? (
             renderCustomerForm()
           ) : (
-            <Box sx={{pt: 3}}>
-              {renderOrderDataSection()}
+            <Box>
+              {renderQRSection()}
+              <Box sx={{pt: 3}}>
+                {generateQR()}
+              </Box>
             </Box>
           )}
         </Box>
