@@ -65,7 +65,7 @@ const MartCard: React.FC<MartCardProps> = ({ img, onAddToCart, isIncludeInCart }
   return (
     <PinterestCard>
       <CardActionArea onClick={onAddToCart}>
-                <Box sx={{ position: 'relative' }}>
+        <Box sx={{ position: 'relative' }}>
           <CardMedia
             component="img"
             image={img.length > 0 ? img[0].url : ''}
