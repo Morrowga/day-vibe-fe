@@ -5,7 +5,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import SearchIcon from '@mui/icons-material/Search';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Cart from '@/components/Cart';
-import { addItem, updateQuantity } from '@/redux/slices/cartSlice';
+import { addItem, updateQuantity, removeItem } from '@/redux/slices/cartSlice'; // Added removeItem
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/redux/store';
 import { fetchProducts, resetProducts } from '@/redux/slices/productSlice';
@@ -35,14 +35,26 @@ const ProductEssential = ({ category }: any) => {
         return `${productId}_${Date.now()}`;
     };
 
-    const addToCart = (item: any) => {
-        const cartId = generateCartId(item.id);
-        dispatch(addItem({
-            ...item,
-            cart_id: cartId,
-            quantity: 1,
-            size: null
-        }));
+    // Updated function to toggle cart item (add/remove)
+    const toggleCartItem = (item: any) => {
+        const isInCart = cartItems.some((cartItem: any) => cartItem.id === item.id);
+        
+        if (isInCart) {
+            // Remove from cart - find the cart item and remove it
+            const cartItem = cartItems.find((cartItem: any) => cartItem.id === item.id);
+            if (cartItem) {
+                dispatch(removeItem(cartItem.cart_id));
+            }
+        } else {
+            // Add to cart
+            const cartId = generateCartId(item.id);
+            dispatch(addItem({
+                ...item,
+                cart_id: cartId,
+                quantity: 1,
+                size: null
+            }));
+        }
     };
 
     const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -286,7 +298,7 @@ const ProductEssential = ({ category }: any) => {
                                     <MartCard
                                         img={item.image_urls}
                                         isIncludeInCart={isIncludeInCart}
-                                        onAddToCart={() => addToCart(item)}
+                                        onAddToCart={() => toggleCartItem(item)} // Changed from addToCart to toggleCartItem
                                     />
                                 </div>
                             );
@@ -315,7 +327,7 @@ const ProductEssential = ({ category }: any) => {
                             // Visible placeholder even when not loading
                             <Box width="100%" height="40px" display="flex" justifyContent="center">
                                 <Typography variant="body2" color="text.secondary">
-                                    အောက်ကိုဆွဲကြည့်ပါ
+                                    အောက်ကိုဆွဲကြည့်ပါ
                                 </Typography>
                             </Box>
                         ) : (
