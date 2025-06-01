@@ -295,7 +295,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
               <!DOCTYPE html>
               <html>
                 <head>
-                  <title>QR Code - Screenshot</title>
+                  <title>QR Code</title>
                   <meta name="viewport" content="width=device-width, initial-scale=1.0">
                   <style>
                     body {
@@ -334,7 +334,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
                       line-height: 1.4;
                     }
                     .close-btn {
-                      background-color: #1976d2;
+                      background-color: #053020;
                       color: white;
                       border: none;
                       padding: 12px 24px;
@@ -344,7 +344,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
                       cursor: pointer;
                     }
                     .close-btn:hover {
-                      background-color: #1565c0;
+                      background-color: #053020;
                     }
                   </style>
                 </head>
@@ -353,7 +353,6 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
                     <div class="title">Checkout QR Code</div>
                     <img src="${pngFile}" alt="QR Code" class="qr-image" />
                     <div class="instruction">
-                      Take a screenshot of this QR code<br>
                       ဤ QR Code ကို Screenshot ယူပါ
                     </div>
                     <button class="close-btn" onclick="window.close()">Close / ပိတ်မည်</button>
@@ -392,10 +391,10 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
             `;
             
             qrModal.innerHTML = `
-              <h3 style="margin-top: 0; color: #333;">QR Code for Screenshot</h3>
+              <h3 style="margin-top: 0; color: #333;">QR Code ( ဘောက်ချာစလစ်​ )</h3>
               <img src="${pngFile}" alt="QR Code" style="max-width: 100%; height: auto; margin: 20px 0;" />
-              <p style="color: #666; font-size: 14px;">Take a screenshot of this QR code<br>ဤ QR Code ကို Screenshot ယူပါ</p>
-              <button id="closeModal" style="background-color: #1976d2; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;">
+              <p style="color: #666; font-size: 14px;">ဤ QR Code ကို Screenshot ယူပါ</p>
+              <button id="closeModal" style="background-color: #053020; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;">
                 Close / ပိတ်မည်
               </button>
             `;
@@ -562,7 +561,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
   const renderQRSection = () => (
     <>
       <Typography sx={{fontSize: 15}} gutterBottom>
-        ဘောက်ချာ စလစ် ကို Gallery ထဲ သိမ်း၍ အောက်ပါ Social Platform များတွင် ငွေချေ ပြီး အော်ဒါတင်ယူပါ။
+        ဘောက်ချာ QR စလစ် ကို Screenshot ရိုက်၍ အောက်ပါ Social Platform များတွင် ငွေချေ ပြီး အော်ဒါတင်ယူပါ။
       </Typography>
       <Box
         sx={{
