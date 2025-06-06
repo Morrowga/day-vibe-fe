@@ -36,7 +36,7 @@ const ProductEssential = ({ category }: any) => {
         1200: 5,       // md screens  
         900: 3,        // sm screens
         600: 3,        // xs screens
-        400: 2         // very small screens
+        400: 3         // very small screens
     };
 
     const toggleCart = () => setCartOpen((prev) => !prev);
