@@ -3,11 +3,11 @@ module.exports = {
     {
       name: 'nextjs-frontend',
       script: 'npm',
-      args: 'start',
+      args: 'run start',
       cwd: '/var/www/frontend',
       env: {
-        PORT: 3000,
-        NODE_ENV: 'production'
+        NODE_ENV: 'production',
+        PORT: 3000
       }
     }
   ]
