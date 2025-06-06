@@ -275,7 +275,7 @@ const ProductEssential = ({ category }: any) => {
                         className="pinterest-container"
                         sx={{
                             columnCount: {
-                                xs: 2, 
+                                xs: 3, 
                                 sm: 4,  
                                 md: 5,   
                                 lg: 8   

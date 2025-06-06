@@ -24,8 +24,7 @@ const PinterestCard = styled(Card)(({ theme }) => ({
   transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
   position: 'relative', // Add this to ensure proper positioning of absolute elements
   '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: 'rgba(0, 0, 0, 0.1) 0px 5px 15px',
+    transform: 'translateY(-4px)'
   },
 }));
 
@@ -46,9 +45,9 @@ const CartIndicator = styled(Box)(({ theme }) => ({
   border: '2px solid white',
   transition: 'transform 0.2s',
   transform: 'scale(1)',
-  '&:hover': {
-    transform: 'scale(1.1)',
-  }
+  // '&:hover': {
+  //   transform: 'scale(1.1)',
+  // }
 }));
 
 const TextOverlay = styled(Box)(({ theme }) => ({
