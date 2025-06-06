@@ -41,7 +41,7 @@ const CartIndicator = styled(Box)(({ theme }) => ({
   justifyContent: 'center',
   alignItems: 'center',
   zIndex: 2,
-  boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+  // boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
   border: '2px solid white',
   transition: 'transform 0.2s',
   transform: 'scale(1)',
@@ -56,7 +56,7 @@ const TextOverlay = styled(Box)(({ theme }) => ({
   left: 0,
   right: 0,
   padding: theme.spacing(1.5),
-  background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
+  // background: 'linear-gradient(transparent, rgba(0,0,0,0.7))',
   color: '#fff',
   zIndex: 1,
 }));
@@ -71,9 +71,11 @@ const MartCard: React.FC<MartCardProps> = ({ img, onAddToCart, isIncludeInCart }
             image={img.length > 0 ? img[0].url : ''}
             alt="item"
             sx={{ 
+              background: '#faede4',
               width: '100%',
               height: 'auto',
-              display: 'block'
+              display: 'block',
+              objectFit: 'cover'
             }}
           />
           
@@ -86,9 +88,9 @@ const MartCard: React.FC<MartCardProps> = ({ img, onAddToCart, isIncludeInCart }
               gap: 0.5 
             }}>
               {/* Bottom row */}
-              <Typography variant="caption" sx={{ textAlign: 'left', fontWeight: 'bold' }}>
+              {/* <Typography variant="caption" sx={{ textAlign: 'left', fontWeight: 'bold' }}>
                 2.5 x 2.5
-              </Typography>
+              </Typography> */}
             </Box>
           </TextOverlay>
         </Box>
