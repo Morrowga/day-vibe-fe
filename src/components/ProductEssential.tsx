@@ -276,9 +276,9 @@ const ProductEssential = ({ category }: any) => {
                         sx={{
                             columnCount: {
                                 xs: 2, 
-                                sm: 3,  
-                                md: 4,   
-                                lg: 6   
+                                sm: 4,  
+                                md: 5,   
+                                lg: 8   
                             },
                             columnGap: '16px',
                             width: '100%',
