@@ -22,10 +22,10 @@ const pages = [
     title: 'စျေး၀ယ်မည်',
     url: '/mini-mart',
   },
-  // {
-  //   title: 'သတင်းအချက်အလက်များ',
-  //   url: '/news',
-  // }
+  {
+    title: 'Customize',
+    url: 'https://t.me/thedayvibe',
+  }
 ];
 
 function NavBar() {
