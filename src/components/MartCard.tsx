@@ -17,9 +17,10 @@ interface MartCardProps {
 // Create a styled Card component with Pinterest-like appearance
 const PinterestCard = styled(Card)(({ theme }) => ({
   width: '100%',
+  background: '#e5e5e5',
   borderRadius: theme.spacing(2),
   overflow: 'hidden',
-  boxShadow: 'rgba(0, 0, 0, 0.05) 0px 1px 5px',
+  boxShadow: 'none',
   transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
   position: 'relative', // Add this to ensure proper positioning of absolute elements
   '&:hover': {
@@ -71,28 +72,13 @@ const MartCard: React.FC<MartCardProps> = ({ img, onAddToCart, isIncludeInCart }
             image={img.length > 0 ? img[0].url : ''}
             alt="item"
             sx={{ 
-              background: '#faede4',
+              // background: '#faede4',
               width: '100%',
               height: 'auto',
               display: 'block',
               objectFit: 'cover'
             }}
           />
-          
-          {/* 2x2 Text Overlay */}
-          <TextOverlay>
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: '1fr 1fr', 
-              gridTemplateRows: 'auto auto',
-              gap: 0.5 
-            }}>
-              {/* Bottom row */}
-              {/* <Typography variant="caption" sx={{ textAlign: 'left', fontWeight: 'bold' }}>
-                2.5 x 2.5
-              </Typography> */}
-            </Box>
-          </TextOverlay>
         </Box>
 
       </CardActionArea>

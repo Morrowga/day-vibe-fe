@@ -37,7 +37,7 @@ export const ThemeContextProvider: React.FC<ThemeContextProviderProps> = ({ chil
           ? {
               primary: { main: '#053020' }, 
               secondary: { main: '#F5A623' }, 
-              background: { default: '#efdecd', paper: '#FFFFFF' }, 
+              background: { default: '#e5e5e5', paper: '#FFFFFF' }, 
               text: { primary: '#333333', secondary: '#666666' }, 
               info: { main: '#053020'}
             }
