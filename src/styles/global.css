@@ -9,4 +9,31 @@ body {
     scroll-behavior: smooth;
   }
 
-  
+  /* Masonry Grid Styles */
+.masonry-grid {
+  display: flex;
+  margin-left: -16px; /* gutter size offset */
+  width: auto;
+}
+
+.masonry-grid-column {
+  padding-left: 16px; /* gutter size */
+  background-clip: padding-box;
+}
+
+/* Optional: Add smooth transitions for better UX */
+.masonry-grid-column > div {
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Ensure images don't cause layout jumps */
+.masonry-grid-column img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Better performance for large lists */
+.masonry-grid {
+  contain: layout style paint;
+}

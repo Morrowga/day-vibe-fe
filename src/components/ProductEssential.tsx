@@ -1,15 +1,16 @@
-// ProductEssential.tsx - Using CSS columns for a true Pinterest layout with infinite scroll
+// ProductEssential.tsx - Fixed masonry layout that maintains positions during pagination
 import MartCard from '@/components/MartCard';
 import { Badge, Box, Container, IconButton, TextField, Typography, InputAdornment, CircularProgress } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import SearchIcon from '@mui/icons-material/Search';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Cart from '@/components/Cart';
-import { addItem, updateQuantity, removeItem } from '@/redux/slices/cartSlice'; // Added removeItem
+import { addItem, updateQuantity, removeItem } from '@/redux/slices/cartSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/redux/store';
 import { fetchProducts, resetProducts } from '@/redux/slices/productSlice';
 import LoadingOverlay from './LoadingOverlay';
+import Masonry from 'react-masonry-css';
 
 const ProductEssential = ({ category }: any) => {
     const [isCartOpen, setCartOpen] = useState(false);
@@ -29,24 +30,30 @@ const ProductEssential = ({ category }: any) => {
     const observerRef = useRef<IntersectionObserver | null>(null);
     const loadingRef = useRef<HTMLDivElement>(null);
 
+    // Masonry breakpoint configuration
+    const breakpointColumnsObj = {
+        default: 7,    // lg screens
+        1200: 5,       // md screens  
+        900: 3,        // sm screens
+        600: 3,        // xs screens
+        400: 2         // very small screens
+    };
+
     const toggleCart = () => setCartOpen((prev) => !prev);
 
     const generateCartId = (productId: number): string => {
         return `${productId}_${Date.now()}`;
     };
 
-    // Updated function to toggle cart item (add/remove)
     const toggleCartItem = (item: any) => {
         const isInCart = cartItems.some((cartItem: any) => cartItem.id === item.id);
         
         if (isInCart) {
-            // Remove from cart - find the cart item and remove it
             const cartItem = cartItems.find((cartItem: any) => cartItem.id === item.id);
             if (cartItem) {
                 dispatch(removeItem(cartItem.cart_id));
             }
         } else {
-            // Add to cart
             const cartId = generateCartId(item.id);
             dispatch(addItem({
                 ...item,
@@ -62,7 +69,6 @@ const ProductEssential = ({ category }: any) => {
     };
 
     const handleSearch = () => {
-        // Reset products when performing a new search
         dispatch(resetProducts());
         dispatch(fetchProducts({ category, q: searchQuery, page: 1 }));
     };
@@ -73,26 +79,23 @@ const ProductEssential = ({ category }: any) => {
         }
     };
 
-    // Function to load more products - FIXED
     const loadMoreProducts = useCallback(() => {
         console.log('Load more triggered:', { hasMore, loadingMore, currentPage });
         
         if (hasMore && !loadingMore) {
             console.log('Fetching next page:', currentPage + 1);
             
-            // Change here - we need to match the exact parameter format checked in the reducer
             dispatch(fetchProducts({ 
                 category, 
                 q: searchQuery, 
                 page: currentPage + 1,
-                isLoadingMore: true  // This is correct, keep it
+                isLoadingMore: true
             }));
         }
     }, [dispatch, category, searchQuery, currentPage, hasMore, loadingMore]);
 
-    // Setup intersection observer for infinite scroll - FIXED
+    // Setup intersection observer for infinite scroll
     useEffect(() => {
-        // Wait a bit to ensure the DOM is fully rendered
         const timer = setTimeout(() => {
             if (observerRef.current) {
                 observerRef.current.disconnect();
@@ -103,7 +106,7 @@ const ProductEssential = ({ category }: any) => {
                 
                 const options = {
                     root: null,
-                    rootMargin: '0px', // Increase even more
+                    rootMargin: '100px', // Start loading before user reaches the bottom
                     threshold: 0.1
                 };
 
@@ -120,7 +123,7 @@ const ProductEssential = ({ category }: any) => {
             } else {
                 console.error('Loading ref not available');
             }
-        }, 500); // Short delay to ensure DOM elements are ready
+        }, 500);
 
         return () => {
             clearTimeout(timer);
@@ -132,7 +135,7 @@ const ProductEssential = ({ category }: any) => {
     }, [loadMoreProducts, hasMore]);
 
     // Initial load of products
-   useEffect(() => {
+    useEffect(() => {
         console.log('Initial load for category:', category);
         dispatch(resetProducts());
         dispatch(fetchProducts({ category, page: 1 }));
@@ -264,78 +267,57 @@ const ProductEssential = ({ category }: any) => {
                 </Box>
             </Container>
 
-            {/* Pinterest-style layout using CSS columns */}
-            <Box>
-                <Box
-                    sx={{
-                        mx: { lg: 2, xs: 1, sm: 3 },
+            {/* Fixed Masonry layout that maintains positions */}
+            <Box sx={{ mx: { lg: 2, xs: 1, sm: 3 } }}>
+                <Masonry
+                    breakpointCols={breakpointColumnsObj}
+                    className="masonry-grid"
+                    columnClassName="masonry-grid-column"
+                >
+                    {allProducts.map((item: any) => {
+                        const isIncludeInCart = cartItems.some((cartItem: any) => cartItem.id === item.id);
+                        
+                        return (
+                            <div key={item.id} style={{ marginBottom: '16px' }}>
+                                <MartCard
+                                    img={item.image_urls}
+                                    isIncludeInCart={isIncludeInCart}
+                                    onAddToCart={() => toggleCartItem(item)}
+                                />
+                            </div>
+                        );
+                    })}
+                </Masonry>
+                
+                {/* Loading indicator for infinite scroll */}
+                <Box 
+                    ref={loadingRef}
+                    sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        my: 3, 
+                        py: 2,
+                        width: '100%',
+                        height: '50px',
+                        clear: 'both',
+                        marginTop: '20px',
+                        position: 'relative',
+                        zIndex: 1,
                     }}
                 >
-                    <Box
-                        className="pinterest-container"
-                        sx={{
-                            columnCount: {
-                                xs: 3, 
-                                sm: 3,  
-                                md: 5,   
-                                lg: 7   
-                            },
-                            columnGap: '16px',
-                            width: '100%',
-                            '& > *': {
-                                breakInside: 'avoid',
-                                marginBottom: '16px',
-                                display: 'block',
-                                width: '100%'
-                            }
-                        }}
-                    >
-                        {allProducts.map((item: any) => {
-                            const isIncludeInCart = cartItems.some((cartItem: any) => cartItem.id === item.id);
-                            
-                            return (
-                                 <div key={item.id}>
-                                    <MartCard
-                                        img={item.image_urls}
-                                        isIncludeInCart={isIncludeInCart}
-                                        onAddToCart={() => toggleCartItem(item)} // Changed from addToCart to toggleCartItem
-                                    />
-                                </div>
-                            );
-                        })}
-                    </Box>
-                    
-                    {/* Loading indicator for infinite scroll - FIXED */}
-                   <Box 
-                        ref={loadingRef}
-                        sx={{ 
-                            display: 'flex', 
-                            justifyContent: 'center', 
-                            my: 3, 
-                            py: 2,
-                            width: '100%',
-                            height: '50px',  // Shorter height
-                            clear: 'both',
-                            marginTop: '20px',
-                            position: 'relative', // Add this
-                            zIndex: 1,           // Add this
-                        }}
-                    >
-                        {loadingMore ? (
-                            <CircularProgress size={40} />
-                        ) : hasMore ? (
-                            // Visible placeholder even when not loading
-                            <Box width="100%" height="40px" display="flex" justifyContent="center">
-                                <Typography variant="body2" color="text.secondary">
-                                    အောက်ကိုဆွဲကြည့်ပါ
-                                </Typography>
-                            </Box>
-                        ) : (
+                    {loadingMore ? (
+                        <CircularProgress size={40} />
+                    ) : hasMore ? (
+                        <Box width="100%" height="40px" display="flex" justifyContent="center">
                             <Typography variant="body2" color="text.secondary">
-                                ...
+                                အောက်ကိုဆွဲကြည့်ပါ
                             </Typography>
-                        )}
-                    </Box>
+                        </Box>
+                    ) : (
+                        <Typography variant="body2" color="text.secondary">
+                            ...
+                        </Typography>
+                    )}
                 </Box>
             </Box>
             
