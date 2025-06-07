@@ -1,6 +1,6 @@
 // ProductEssential.tsx - Fixed masonry layout that maintains positions during pagination
 import MartCard from '@/components/MartCard';
-import { Badge, Box, Container, IconButton, TextField, Typography, InputAdornment, CircularProgress } from '@mui/material';
+import { Badge, Box, Container, IconButton, TextField, Typography, InputAdornment, CircularProgress, Chip } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import SearchIcon from '@mui/icons-material/Search';
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
@@ -29,6 +29,31 @@ const ProductEssential = ({ category }: any) => {
     // Reference to observe for infinite scroll
     const observerRef = useRef<IntersectionObserver | null>(null);
     const loadingRef = useRef<HTMLDivElement>(null);
+
+    const searchChips = [
+        'Cartoon',
+        'Horror',
+        'Skull', 
+        'Fashion', 
+        'Kaws', 
+        'Words', 
+        'Social Media', 
+        'Memes', 
+        'Romance',
+        'Sexy',
+        'Anime',
+        'Yellow',
+        'Red',
+        'Black',
+        'White',
+        'Blue',
+        'Green',
+        'Car',
+        'Aliens',
+        'Weed',
+        'Sports',
+        'Drinks'
+    ];
 
     // Masonry breakpoint configuration
     const breakpointColumnsObj = {
@@ -95,6 +120,20 @@ const ProductEssential = ({ category }: any) => {
 
     const generateCartId = (productId: number): string => {
         return `${productId}_${Date.now()}`;
+    };
+
+    const handleChipClick = (chipValue: string) => {
+        // If clicking the same chip that's already active, clear the search
+        if (searchQuery === chipValue) {
+            setSearchQuery('');
+            dispatch(resetProducts());
+            dispatch(fetchProducts({ category, q: '', page: 1 }));
+        } else {
+            // Otherwise, set the new search query
+            setSearchQuery(chipValue);
+            dispatch(resetProducts());
+            dispatch(fetchProducts({ category, q: chipValue, page: 1 }));
+        }
     };
 
     const toggleCartItem = (item: any) => {
@@ -240,7 +279,7 @@ const ProductEssential = ({ category }: any) => {
                             alignItems: 'center',
                             mt: { lg: '5vh', sm: '10vh', xs: '5vh' },
                             transition: 'margin-top 1s',
-                            mx: { lg: 10, xs: 3, sm: 10 },
+                            mx: { lg: 10, xs: 0, sm: 10 },
                         }}
                     >
                         <TextField
@@ -300,7 +339,7 @@ const ProductEssential = ({ category }: any) => {
                         alignItems: 'center',
                         mt: { lg: '5vh', sm: '10vh', xs: '5vh' },
                         transition: 'margin-top 1s',
-                        mx: { lg: 10, xs: 3, sm: 10 },
+                        mx: { lg: 10, xs: 2, sm: 10 },
                         mb: 3,
                     }}
                 >
@@ -334,6 +373,39 @@ const ProductEssential = ({ category }: any) => {
                             </IconButton>
                         </Badge>
                     </Box>
+                </Box>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        maxWidth: '100%',
+                        overflow: 'hidden',
+                        mb: 2
+                    }}
+                >
+                    {searchChips.map((chip, index) => (
+                        <Chip
+                            key={index}
+                            label={chip}
+                            onClick={() => handleChipClick(chip)}
+                            variant={searchQuery === chip ? "filled" : "outlined"}
+                            color={searchQuery === chip ? "primary" : "default"}
+                            sx={{
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease-in-out',
+                                '&:hover': {
+                                    backgroundColor: searchQuery === chip ? 'primary.dark' : 'action.hover',
+                                    transform: 'scale(1.05)',
+                                },
+                                fontSize: '0.8rem',
+                                height: '28px',
+                            }}
+                            size="small"
+                        />
+                    ))}
                 </Box>
             </Container>
 
