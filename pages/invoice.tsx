@@ -6,6 +6,10 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import IconButton from '@mui/material/IconButton';
+import CloseIcon from '@mui/icons-material/Close';
 import InfoMobile from '@/components/InfoMobile';
 import Info from '@/components/Info';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,7 +18,6 @@ import { setItems, setTotalAmount, setTotalQuantity } from '../src/redux/slices/
 import { useRouter } from 'next/router';
 import { useEffect, useState, useRef } from 'react';
 import QRCode from 'react-qr-code';
-import { IconButton } from '@mui/material';
 import FacebookIcon from '@mui/icons-material/Facebook';
 import TelegramIcon from '@mui/icons-material/Telegram';
 
@@ -131,6 +134,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
   const {totalQuantity, totalAmount, items} = useSelector((state: any) => state.cart);
   const [qrValue, setQrValue] = useState('');
   const [isMobile, setIsMobile] = useState(false);
+  const [qrDialogOpen, setQrDialogOpen] = useState(false);
   
   // Form state
   const [formData, setFormData] = useState({
@@ -254,181 +258,12 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
     }
   }, [formData]);
 
-  const downloadQRCode = () => {
-    if (!qrCodeRef.current) return;
-    
-    const svg = qrCodeRef.current.querySelector('svg');
-    if (!svg) return;
-    
-    // Create a higher resolution canvas
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    
-    // Check if context is available
-    if (!ctx) {
-      console.error('Unable to get canvas context');
-      return;
-    }
-    
-    const scale = 2; // Increase resolution
-    
-    canvas.width = 256 * scale;
-    canvas.height = 256 * scale;
-    
-    // Set white background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const img = new Image();
-    
-    img.onload = () => {
-      if (ctx) {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const pngFile = canvas.toDataURL("image/png", 1.0); // Maximum quality
-        
-        if (isMobile) {
-          // For mobile devices, open QR code in a new window/tab for screenshot
-          const newWindow = window.open('', '_blank');
-          if (newWindow) {
-            newWindow.document.write(`
-              <!DOCTYPE html>
-              <html>
-                <head>
-                  <title>QR Code</title>
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <style>
-                    body {
-                      margin: 0;
-                      padding: 20px;
-                      display: flex;
-                      flex-direction: column;
-                      align-items: center;
-                      justify-content: center;
-                      min-height: 100vh;
-                      background-color: #ffffff;
-                      font-family: Arial, sans-serif;
-                    }
-                    .qr-container {
-                      text-align: center;
-                      background: white;
-                      padding: 30px;
-                      border-radius: 10px;
-                      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                    }
-                    .qr-image {
-                      max-width: 100%;
-                      height: auto;
-                      margin: 20px 0;
-                    }
-                    .title {
-                      color: #333;
-                      margin-bottom: 15px;
-                      font-size: 18px;
-                      font-weight: bold;
-                    }
-                    .instruction {
-                      color: #666;
-                      font-size: 14px;
-                      margin-top: 15px;
-                      line-height: 1.4;
-                    }
-                    .close-btn {
-                      background-color: #053020;
-                      color: white;
-                      border: none;
-                      padding: 12px 24px;
-                      border-radius: 6px;
-                      font-size: 16px;
-                      margin-top: 20px;
-                      cursor: pointer;
-                    }
-                    .close-btn:hover {
-                      background-color: #053020;
-                    }
-                  </style>
-                </head>
-                <body>
-                  <div class="qr-container">
-                    <div class="title">Checkout QR Code</div>
-                    <img src="${pngFile}" alt="QR Code" class="qr-image" />
-                    <div class="instruction">
-                      ဤ QR Code ကို Screenshot ယူပါ
-                    </div>
-                    <button class="close-btn" onclick="window.close()">Close / ပိတ်မည်</button>
-                  </div>
-                </body>
-              </html>
-            `);
-            newWindow.document.close();
-          } else {
-            // Fallback: Create a modal-like overlay on the current page
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
-              position: fixed;
-              top: 0;
-              left: 0;
-              width: 100%;
-              height: 100%;
-              background-color: rgba(0, 0, 0, 0.8);
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              z-index: 10000;
-              padding: 20px;
-              box-sizing: border-box;
-            `;
-            
-            const qrModal = document.createElement('div');
-            qrModal.style.cssText = `
-              background: white;
-              padding: 30px;
-              border-radius: 10px;
-              text-align: center;
-              max-width: 90%;
-              max-height: 90%;
-              overflow: auto;
-            `;
-            
-            qrModal.innerHTML = `
-              <h3 style="margin-top: 0; color: #333;">QR Code ( ဘောက်ချာစလစ်​ )</h3>
-              <img src="${pngFile}" alt="QR Code" style="max-width: 100%; height: auto; margin: 20px 0;" />
-              <p style="color: #666; font-size: 14px;">ဤ QR Code ကို Screenshot ယူပါ</p>
-              <button id="closeModal" style="background-color: #053020; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;">
-                Close / ပိတ်မည်
-              </button>
-            `;
-            
-            overlay.appendChild(qrModal);
-            document.body.appendChild(overlay);
-            
-            // Close modal when clicking close button or overlay
-            const closeModal = () => {
-              document.body.removeChild(overlay);
-            };
-            
-            qrModal.querySelector('#closeModal')?.addEventListener('click', closeModal);
-            overlay.addEventListener('click', (e) => {
-              if (e.target === overlay) closeModal();
-            });
-          }
-        } else {
-          // For desktop, keep the download functionality
-          const link = document.createElement('a');
-          link.href = pngFile;
-          link.download = 'checkout-qr.png';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
-      }
-    };
-    
-    img.onerror = () => {
-      console.error('Failed to load SVG image');
-    };
-    
-    img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+  const openQRDialog = () => {
+    setQrDialogOpen(true);
+  };
+
+  const closeQRDialog = () => {
+    setQrDialogOpen(false);
   };
 
   const generateQR = () => {
@@ -456,11 +291,6 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
         borderRadius: 1,
         bgcolor: 'background.paper'
       }}>
-        {/* Show actual QR content for debugging */}
-        {/* <Typography variant="caption" sx={{ mb: 2, color: 'text.secondary', fontSize: '10px', maxWidth: '300px', wordBreak: 'break-all' }}>
-          Full QR Content: {qrValue}
-        </Typography>
-         */}
         <div ref={qrCodeRef} key={qrValue}>
           <QRCode
             value={qrValue}
@@ -476,9 +306,9 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           variant="contained" 
           color="primary"
           sx={{ mt: 2 }}
-          onClick={downloadQRCode}
+          onClick={openQRDialog}
         >
-          {isMobile ? "ဘောက်ချာ သိမ်းမည်။" : "ဘောက်ချာ သိမ်းမည်။"}
+          ဘောက်ချာသိမ်းမည်။
         </Button>
       </Box>
     );
@@ -507,7 +337,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           onChange={(e) => handleInputChange('name', e.target.value)}
           error={!!formErrors.name}
           helperText={formErrors.name}
-          placeholder="အမည်ရိုက်ထည့်ပါ"
+          placeholder="အမည်ရိုက်ထည့်ပါ"
         />
 
         {/* Phone Field */}
@@ -519,7 +349,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
           onChange={(e) => handleInputChange('phone', e.target.value)}
           error={!!formErrors.phone}
           helperText={formErrors.phone}
-          placeholder="ဖုန်းနံပါတ်ရိုက်ထည့်ပါ e.g., +95 xxxxxxxxx"
+          placeholder="ဖုန်းနံပါတ်ရိုက်ထည့်ပါ e.g., +95 xxxxxxxxx"
         />
 
         {/* City Field */}
@@ -607,7 +437,7 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
               width: 48,
               height: 48
             }}
-            onClick={() => window.open('https://t.me/your-username', '_blank')}
+            onClick={() => window.open('https://t.me/thedayvibe', '_blank')}
           >
             <TelegramIcon />
           </IconButton>
@@ -626,121 +456,196 @@ export default function Checkout(props: { disableCustomTheme?: boolean }) {
   );
 
   return (
-    <Grid
-      container
-      sx={{
-        height: {
-          xs: '100%',
-        },
-        mt: {
-          xs: 4,
-          sm: 0,
-        },
-      }}
-    >
+    <>
       <Grid
-        size={{ xs: 12, sm: 5, lg: 4 }}
+        container
         sx={{
-          display: { xs: 'none', md: 'flex' },
-          flexDirection: 'column',
-          backgroundColor: 'background.paper',
-          borderRight: { sm: 'none', md: '1px solid' },
-          borderColor: { sm: 'none', md: 'divider' },
-          alignItems: 'start',
-          pt: 16,
-          px: 10,
-          gap: 4,
+          height: {
+            xs: '100%',
+          },
+          mt: {
+            xs: 4,
+            sm: 0,
+          },
         }}
       >
-        <Box
+        <Grid
+          size={{ xs: 12, sm: 5, lg: 4 }}
+          sx={{
+            display: { xs: 'none', md: 'flex' },
+            flexDirection: 'column',
+            backgroundColor: 'background.paper',
+            borderRight: { sm: 'none', md: '1px solid' },
+            borderColor: { sm: 'none', md: 'divider' },
+            alignItems: 'start',
+            pt: 16,
+            px: 10,
+            gap: 4,
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              flexGrow: 1,
+              width: '100%',
+              maxWidth: 500,
+              minHeight: '80vh',
+            }}
+          >
+            <Info totalPrice={totalAmount + ' ကျပ်'} totalQuantity={totalQuantity} />
+          </Box>
+        </Grid>
+        <Grid
+          size={{ sm: 12, md: 7, lg: 8 }}
           sx={{
             display: 'flex',
             flexDirection: 'column',
-            flexGrow: 1,
+            maxWidth: '100%',
             width: '100%',
-            maxWidth: 500,
-            minHeight: '80vh',
+            backgroundColor: { xs: 'transparent', sm: 'background.default' },
+            alignItems: 'start',
+            pt: { xs: 0, sm: 7.1 },
+            px: { xs: 2, sm: 10 },
+            gap: { xs: 4, md: 8 },
           }}
         >
-          <Info totalPrice={totalAmount + ' ကျပ်'} totalQuantity={totalQuantity} />
-        </Box>
-      </Grid>
-      <Grid
-        size={{ sm: 12, md: 7, lg: 8 }}
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          maxWidth: '100%',
-          width: '100%',
-          backgroundColor: { xs: 'transparent', sm: 'background.default' },
-          alignItems: 'start',
-          pt: { xs: 0, sm: 7.1 },
-          px: { xs: 2, sm: 10 },
-          gap: { xs: 4, md: 8 },
-        }}
-      >
-          {!showQR ? (
-            <Box
+            {!showQR ? (
+              <Box
+                sx={{
+                  display: { xs: 'none', md: 'block' },
+                  width: '100%',
+                  flexDirection: 'column'
+                }}
+              >
+                {renderCustomerForm()}
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  display: { xs: 'none', md: 'flex' },
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                  flexDirection: 'column'
+                }}
+              >
+                  {renderQRSection()}
+                  <Box sx={{px: 10, pb: 10, pt: 4}}>
+                    {generateQR()}
+                  </Box>
+              </Box>
+            )}
+          
+          <Card sx={{ display: { xs: 'flex', md: 'none' }, width: '100%' }}>
+            <CardContent
               sx={{
-                display: { xs: 'none', md: 'block' },
+                display: 'flex',
                 width: '100%',
-                flexDirection: 'column'
-              }}
-            >
-              {renderCustomerForm()}
-            </Box>
-          ) : (
-            <Box
-              sx={{
-                display: { xs: 'none', md: 'flex' },
                 alignItems: 'center',
-                justifyContent: 'center',
-                width: '100%',
-                flexDirection: 'column'
+                justifyContent: 'space-between',
               }}
             >
+              <div>
+                <Typography variant="subtitle2" gutterBottom>
+                  ရွေးချယ်ထားသော ပစ္စည်း များ
+                </Typography>
+                <Typography variant="body1">
+                  {totalAmount} ကျပ်
+                </Typography>
+              </div>
+              <InfoMobile totalPrice={totalAmount + ' ကျပ်'} totalQuantity={totalQuantity} />
+            </CardContent>
+          </Card>
+          
+          {/* Mobile Customer Form and QR Code */}
+          <Box sx={{ display: { xs: 'block', md: 'none' }, width: '100%' }}>
+            {!showQR ? (
+              renderCustomerForm()
+            ) : (
+              <Box>
                 {renderQRSection()}
-                <Box sx={{px: 10, pb: 10, pt: 4}}>
+                <Box sx={{pt: 3}}>
                   {generateQR()}
                 </Box>
-            </Box>
-          )}
-        
-        <Card sx={{ display: { xs: 'flex', md: 'none' }, width: '100%' }}>
-          <CardContent
+              </Box>
+            )}
+          </Box>
+        </Grid>
+      </Grid>
+
+      {/* QR Code Dialog */}
+      <Dialog
+        open={qrDialogOpen}
+        onClose={closeQRDialog}
+        maxWidth={false}
+        fullScreen
+        PaperProps={{
+          sx: {
+            bgcolor: 'background.default',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }
+        }}
+      >
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            width: '100%',
+            textAlign: 'center',
+            p: 4,
+          }}
+        >
+          {/* Close Button */}
+          <IconButton
+            onClick={closeQRDialog}
             sx={{
-              display: 'flex',
-              width: '100%',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              bgcolor: 'background.paper',
+              color: 'text.primary',
+              '&:hover': {
+                bgcolor: 'action.hover',
+              },
+              zIndex: 1,
             }}
           >
-            <div>
-              <Typography variant="subtitle2" gutterBottom>
-                ရွေးချယ်ထားသော ပစ္စည်း များ
-              </Typography>
-              <Typography variant="body1">
-                {totalAmount} ကျပ်
-              </Typography>
-            </div>
-            <InfoMobile totalPrice={totalAmount + ' ကျပ်'} totalQuantity={totalQuantity} />
-          </CardContent>
-        </Card>
-        
-        {/* Mobile Customer Form and QR Code */}
-        <Box sx={{ display: { xs: 'block', md: 'none' }, width: '100%' }}>
-          {!showQR ? (
-            renderCustomerForm()
-          ) : (
-            <Box>
-              {renderQRSection()}
-              <Box sx={{pt: 3}}>
-                {generateQR()}
-              </Box>
-            </Box>
-          )}
-        </Box>
-      </Grid>
-    </Grid>
+            <CloseIcon />
+          </IconButton>
+
+          {/* QR Code */}
+          <Box sx={{ mb: 4 }}>
+            {qrValue && (
+              <QRCode
+                value={qrValue}
+                size={Math.min(window.innerWidth * 0.8, window.innerHeight * 0.6, 400)}
+                level="M"
+                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                fgColor='#000'
+                bgColor='#fff'
+              />
+            )}
+          </Box>
+
+          {/* Instruction Text */}
+          <Typography
+            variant="h6"
+            sx={{
+              color: 'text.primary',
+              fontWeight: 'medium',
+              mt: 2,
+            }}
+          >
+            ဤ QR Code ကို Screenshot ယူပါ
+          </Typography>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

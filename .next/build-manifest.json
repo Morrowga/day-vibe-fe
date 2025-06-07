@@ -5,8 +5,8 @@
   "devFiles": [],
   "ampDevFiles": [],
   "lowPriorityFiles": [
-    "static/d4juQAs7UvqrYiNmZsx0G/_buildManifest.js",
-    "static/d4juQAs7UvqrYiNmZsx0G/_ssgManifest.js"
+    "static/kazOaP3UyLxR1O-olAVNG/_buildManifest.js",
+    "static/kazOaP3UyLxR1O-olAVNG/_ssgManifest.js"
   ],
   "rootMainFiles": [
     "static/chunks/webpack-35b091ca5c5192ac.js",
@@ -66,7 +66,7 @@
       "static/chunks/107-e2f1f816e28ae2fd.js",
       "static/chunks/852-ba451545f8258455.js",
       "static/chunks/969-e190bb7a6cb5a7ad.js",
-      "static/chunks/pages/invoice-f5c394d16faf911f.js"
+      "static/chunks/pages/invoice-d413562657060e6a.js"
     ],
     "/mini-mart": [
       "static/chunks/webpack-35b091ca5c5192ac.js",
