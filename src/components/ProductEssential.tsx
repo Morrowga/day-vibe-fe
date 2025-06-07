@@ -3,7 +3,7 @@ import MartCard from '@/components/MartCard';
 import { Badge, Box, Container, IconButton, TextField, Typography, InputAdornment, CircularProgress } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import SearchIcon from '@mui/icons-material/Search';
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import Cart from '@/components/Cart';
 import { addItem, updateQuantity, removeItem } from '@/redux/slices/cartSlice';
 import { useDispatch, useSelector } from 'react-redux';
@@ -38,6 +38,58 @@ const ProductEssential = ({ category }: any) => {
         600: 3,        // xs screens
         400: 3         // very small screens
     };
+
+    // Deduplicate products to prevent duplicates from pagination
+    const uniqueProducts = useMemo(() => {
+        if (!allProducts || allProducts.length === 0) return [];
+        
+        const seen = new Set();
+        const filtered = allProducts.filter((product: any) => {
+            if (seen.has(product.id)) {
+                console.log('Duplicate found and removed:', product.id);
+                return false;
+            }
+            seen.add(product.id);
+            return true;
+        });
+        
+        console.log('Deduplication:', {
+            original: allProducts.length,
+            unique: filtered.length,
+            duplicatesRemoved: allProducts.length - filtered.length
+        });
+        
+        return filtered;
+    }, [allProducts]);
+
+    // Check if we actually have more products to load
+    const shouldShowLoadMore = useMemo(() => {
+        // Don't show load more if we're already loading
+        if (loadingMore) return true;
+        
+        // Don't show if we have no products yet
+        if (uniqueProducts.length === 0) return false;
+        
+        // Don't show if hasMore is explicitly false
+        if (!hasMore) return false;
+        
+        // Check if we have enough products for the current page
+        // If we have less than expected for this page, we might be at the end
+        const expectedProductsForCurrentPage = currentPage * 30; // assuming 30 per page
+        const actualProducts = uniqueProducts.length;
+        
+        // If we have significantly fewer products than expected, we might be at the end
+        if (actualProducts < expectedProductsForCurrentPage - 15) {
+            console.log('Detected end of data based on product count:', {
+                expected: expectedProductsForCurrentPage,
+                actual: actualProducts,
+                currentPage
+            });
+            return false;
+        }
+        
+        return true;
+    }, [hasMore, loadingMore, uniqueProducts.length, currentPage]);
 
     const toggleCart = () => setCartOpen((prev) => !prev);
 
@@ -80,9 +132,15 @@ const ProductEssential = ({ category }: any) => {
     };
 
     const loadMoreProducts = useCallback(() => {
-        console.log('Load more triggered:', { hasMore, loadingMore, currentPage });
+        console.log('Load more triggered:', { 
+            hasMore, 
+            loadingMore, 
+            currentPage, 
+            shouldShowLoadMore,
+            uniqueProductsCount: uniqueProducts.length 
+        });
         
-        if (hasMore && !loadingMore) {
+        if (shouldShowLoadMore && hasMore && !loadingMore) {
             console.log('Fetching next page:', currentPage + 1);
             
             dispatch(fetchProducts({ 
@@ -92,10 +150,18 @@ const ProductEssential = ({ category }: any) => {
                 isLoadingMore: true
             }));
         }
-    }, [dispatch, category, searchQuery, currentPage, hasMore, loadingMore]);
+    }, [dispatch, category, searchQuery, currentPage, hasMore, loadingMore, shouldShowLoadMore, uniqueProducts.length]);
 
     // Setup intersection observer for infinite scroll
     useEffect(() => {
+        // Only set up observer if we have products and should show load more
+        if (uniqueProducts.length === 0 || !shouldShowLoadMore) {
+            if (observerRef.current) {
+                observerRef.current.disconnect();
+            }
+            return;
+        }
+
         const timer = setTimeout(() => {
             if (observerRef.current) {
                 observerRef.current.disconnect();
@@ -112,8 +178,8 @@ const ProductEssential = ({ category }: any) => {
 
                 observerRef.current = new IntersectionObserver(entries => {
                     console.log('Observer triggered, entries:', entries.map(e => e.isIntersecting));
-                    if (entries[0].isIntersecting) {
-                        console.log('Loading indicator is visible');
+                    if (entries[0].isIntersecting && shouldShowLoadMore) {
+                        console.log('Loading indicator is visible and should load more');
                         loadMoreProducts();
                     }
                 }, options);
@@ -123,7 +189,7 @@ const ProductEssential = ({ category }: any) => {
             } else {
                 console.error('Loading ref not available');
             }
-        }, 500);
+        }, 1000); // Increased delay to ensure initial load is complete
 
         return () => {
             clearTimeout(timer);
@@ -132,7 +198,7 @@ const ProductEssential = ({ category }: any) => {
                 console.log('Observer detached');
             }
         };
-    }, [loadMoreProducts, hasMore]);
+    }, [loadMoreProducts, shouldShowLoadMore, uniqueProducts.length]);
 
     // Initial load of products
     useEffect(() => {
@@ -141,14 +207,18 @@ const ProductEssential = ({ category }: any) => {
         dispatch(fetchProducts({ category, page: 1 }));
     }, [dispatch, category]);
 
+    // Debug logging
     useEffect(() => {
         console.log('Current Redux state:', { 
             currentPage, 
             hasMore, 
             loadingMore, 
-            productsCount: allProducts.length 
+            productsCount: allProducts.length,
+            uniqueProductsCount: uniqueProducts.length,
+            shouldShowLoadMore,
+            status
         });
-    }, [currentPage, hasMore, loadingMore, allProducts.length]);
+    }, [currentPage, hasMore, loadingMore, allProducts.length, uniqueProducts.length, shouldShowLoadMore, status]);
 
     if (status === 'loading') {
         return <LoadingOverlay />;
@@ -158,7 +228,7 @@ const ProductEssential = ({ category }: any) => {
         return <div>Error loading products</div>;
     }
 
-    if (allProducts.length === 0) {
+    if (uniqueProducts.length === 0) {
         return (
             <>
                 {/* Search header */}
@@ -274,7 +344,7 @@ const ProductEssential = ({ category }: any) => {
                     className="masonry-grid"
                     columnClassName="masonry-grid-column"
                 >
-                    {allProducts.map((item: any) => {
+                    {uniqueProducts.map((item: any) => {
                         const isIncludeInCart = cartItems.some((cartItem: any) => cartItem.id === item.id);
                         
                         return (
@@ -289,36 +359,54 @@ const ProductEssential = ({ category }: any) => {
                     })}
                 </Masonry>
                 
-                {/* Loading indicator for infinite scroll */}
-                <Box 
-                    ref={loadingRef}
-                    sx={{ 
-                        display: 'flex', 
-                        justifyContent: 'center', 
-                        my: 3, 
-                        py: 2,
-                        width: '100%',
-                        height: '50px',
-                        clear: 'both',
-                        marginTop: '20px',
-                        position: 'relative',
-                        zIndex: 1,
-                    }}
-                >
-                    {loadingMore ? (
-                        <CircularProgress size={40} />
-                    ) : hasMore ? (
-                        <Box width="100%" height="40px" display="flex" justifyContent="center">
+                {/* Loading indicator for infinite scroll - only show when appropriate */}
+                {shouldShowLoadMore && (
+                    <Box 
+                        ref={loadingRef}
+                        sx={{ 
+                            display: 'flex', 
+                            justifyContent: 'center', 
+                            my: 3, 
+                            py: 2,
+                            width: '100%',
+                            height: '50px',
+                            clear: 'both',
+                            marginTop: '20px',
+                            position: 'relative',
+                            zIndex: 1,
+                        }}
+                    >
+                        {loadingMore ? (
+                            <CircularProgress size={40} />
+                        ) : hasMore ? (
+                            <Box width="100%" height="40px" display="flex" justifyContent="center">
+                                <Typography variant="body2" color="text.secondary">
+                                    အောက်ကိုဆွဲကြည့်ပါ
+                                </Typography>
+                            </Box>
+                        ) : (
                             <Typography variant="body2" color="text.secondary">
-                                အောက်ကိုဆွဲကြည့်ပါ
+                                ...
                             </Typography>
-                        </Box>
-                    ) : (
+                        )}
+                    </Box>
+                )}
+                
+                {/* End of data indicator */}
+                {!shouldShowLoadMore && !hasMore && uniqueProducts.length > 0 && (
+                    <Box 
+                        sx={{ 
+                            display: 'flex', 
+                            justifyContent: 'center', 
+                            my: 3, 
+                            py: 2,
+                        }}
+                    >
                         <Typography variant="body2" color="text.secondary">
-                            ...
+                            အားလုံးပြီးပါပြီ
                         </Typography>
-                    )}
-                </Box>
+                    </Box>
+                )}
             </Box>
             
             <Cart 

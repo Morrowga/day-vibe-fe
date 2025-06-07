@@ -5,8 +5,8 @@
   "devFiles": [],
   "ampDevFiles": [],
   "lowPriorityFiles": [
-    "static/kazOaP3UyLxR1O-olAVNG/_buildManifest.js",
-    "static/kazOaP3UyLxR1O-olAVNG/_ssgManifest.js"
+    "static/s9X4id6m9gQblyYMPEUyg/_buildManifest.js",
+    "static/s9X4id6m9gQblyYMPEUyg/_ssgManifest.js"
   ],
   "rootMainFiles": [
     "static/chunks/webpack-35b091ca5c5192ac.js",
@@ -27,7 +27,7 @@
       "static/chunks/107-e2f1f816e28ae2fd.js",
       "static/chunks/228-0a8c4a8f2309b5f2.js",
       "static/chunks/969-e190bb7a6cb5a7ad.js",
-      "static/chunks/479-f9d0927600bdaf9d.js",
+      "static/chunks/479-f1088c1afef7341e.js",
       "static/chunks/pages/Fancy-fd57dfe0a62813da.js"
     ],
     "/_app": [
@@ -50,7 +50,7 @@
       "static/chunks/107-e2f1f816e28ae2fd.js",
       "static/chunks/228-0a8c4a8f2309b5f2.js",
       "static/chunks/969-e190bb7a6cb5a7ad.js",
-      "static/chunks/479-f9d0927600bdaf9d.js",
+      "static/chunks/479-f1088c1afef7341e.js",
       "static/chunks/pages/badges-00f9a192fadb949b.js"
     ],
     "/customize-crafts": [
@@ -81,7 +81,7 @@
       "static/chunks/107-e2f1f816e28ae2fd.js",
       "static/chunks/228-0a8c4a8f2309b5f2.js",
       "static/chunks/969-e190bb7a6cb5a7ad.js",
-      "static/chunks/479-f9d0927600bdaf9d.js",
+      "static/chunks/479-f1088c1afef7341e.js",
       "static/chunks/pages/posters-be99e4cb25effdbf.js"
     ],
     "/stickers": [
@@ -91,7 +91,7 @@
       "static/chunks/107-e2f1f816e28ae2fd.js",
       "static/chunks/228-0a8c4a8f2309b5f2.js",
       "static/chunks/969-e190bb7a6cb5a7ad.js",
-      "static/chunks/479-f9d0927600bdaf9d.js",
+      "static/chunks/479-f1088c1afef7341e.js",
       "static/chunks/pages/stickers-f35fa38af0095c37.js"
     ]
   },
